@@ -1,0 +1,170 @@
+---
+title: "Tomales Bay waterbird foraging guild summary"
+output:
+  word_document:
+    pandoc_args:
+     '--lua-filter=page-break.lua'
+fig_width: 6
+---
+
+```{r echo=F, message=F, error=F, warning=F}
+
+
+
+# basic raw data visualization
+
+# packages, source ----
+library(tidyverse)
+library(lubridate)
+library(flextable)
+library(officer)
+library(RColorBrewer)
+
+source("C:/Users/scott.jennings/Documents/Projects/R_general/utility_functions/bird_utility_functions.r")
+source("C:/Users/scott.jennings/Documents/Projects/water_birds/code/waterbird_utility_functions.r")
+```
+
+```{r echo=F, message=F, error=F, warning=F}
+# data ----
+# waterbird foraging guild membership
+# recieved in xlsx via email from NW on 2020/08/26
+wbird_guilds <- read.csv("C:/Users/scott.jennings/Documents/Projects/water_birds/waterbird_trends_2020/data_files/Foraging guild table.csv") %>% 
+  bird_taxa_filter(join_taxa = c("common.name", "common.name")) %>% 
+  mutate_all(na_if,"") 
+
+wbird_guilds_longer <- wbird_guilds %>% 
+  select(alpha.code, guild, guild2) %>% 
+  pivot_longer(cols = contains("guild"), names_to = "which.guild", values_to = "guild.name") %>% 
+  mutate_all(na_if,"") %>% 
+  filter(!is.na(guild.name))
+
+
+# allocated, negative tallied waterbird data
+
+
+wbirds4analysis <- readRDS("C:/Users/scott.jennings/Documents/Projects/water_birds/data_files/working_rds/wbirds4analysis") %>% 
+  mutate(survey.num = as.numeric(survey.num)) %>% 
+  wbird_add_season() %>% 
+  rename(year = season)
+
+```
+
+
+Number of surveys per year
+
+```{r echo=F, message=F, error=F, warning=F}
+surv_per_year <- wbirds4analysis %>% 
+  distinct(year, survey.num) %>% 
+  group_by(year) %>% 
+  filter(survey.num == max(survey.num)) %>% 
+  select(year, survey.num)
+
+
+surv_per_year_wide <- cbind(surv_per_year[1:8,],
+                            surv_per_year[9:16,],
+                            surv_per_year[17:24,],
+                            surv_per_year[25:32,])
+
+flextable(surv_per_year_wide) %>% 
+set_header_labels(year...1 = "Year", survey.num...2 = "Number of surveys", year...3 = "Year", survey.num...4 = "Number of surveys", year...5 = "Year", survey.num...6 = "Number of surveys", year...7 = "Year", survey.num...8 = "Number of surveys")
+
+```
+
+<br>
+<br>
+<br>
+
+Foraging guild membership of wintering waterbirds on Tomales Bay.
+
+```{r echo=F, message=F, error=F, warning=F}
+wbird_guilds %>% 
+  filter(!is.na(guild)) %>% 
+  select(common.name, guild) %>% 
+  group_by(guild) %>% 
+  mutate(spp.num = seq(1:n())) %>% 
+  pivot_wider(names_from = "guild", values_from = "common.name") %>%
+  select(-spp.num) %>% 
+  flextable() %>% 
+  set_table_properties(layout = "autofit") %>% 
+  fontsize(size = 10, part = "all")
+```
+
+
+
+
+```{r echo=F, message=F, error=F, warning=F}
+
+# by guild trends ----
+
+wbird_by_guild <- wbirds4analysis %>% 
+  full_join(., filter(wbird_guilds_longer, which.guild == "guild"))
+
+wbird_by_guild_summ <- wbird_by_guild %>% 
+  filter(!is.na(guild.name), !is.na(date)) %>% 
+  group_by(year, guild.name, survey.num) %>% 
+  summarize(guild.abund = sum(section.final)) %>% 
+  ungroup()
+
+wbird_by_guild_surv_mean <- wbird_by_guild_summ %>% 
+  group_by(year, guild.name) %>% 
+  summarise(guild.abund = mean(guild.abund)) %>% 
+  ungroup() %>% 
+  arrange(year, guild.name) %>% 
+  mutate(survey.num = "Mean")
+
+guild_summ_mean <- rbind(wbird_by_guild_summ, wbird_by_guild_surv_mean)
+
+
+```
+
+
+\newpage
+
+There is relatively little variance in abundance between surveys, so the mean of those values is a good representation of the number of waterbirds on the bay.
+
+```{r echo=F, message=F, error=F, warning=F}
+
+survey_colors <- c(brewer.pal(4, "Dark2"), "black")
+names(survey_colors) <- c("1", "2", "3", "4", "Mean")
+
+
+guild_summ_mean %>% 
+  filter(guild.name != "Planktivore") %>% 
+ggplot() +
+  geom_line(aes(x = year, y = guild.abund, color = survey.num)) +
+  ylab("Abundance") +
+  ggtitle("Waterbird abundance by survey ") +
+  facet_wrap(~guild.name, scales = "free") +
+  theme_classic() +
+  guides(color=guide_legend(title="Survey number\nor mean")) +
+  theme(legend.position="bottom",
+        plot.margin=unit(c(0,1,0,0),"cm")) +
+  scale_color_manual(values = survey_colors)
+
+```
+      
+
+\newpage
+
+
+Now looking at just the mean value, waterbird abundance has not changed dramatically (like shorebirds), but there may be decreasing abundance in the last 10 or so years. There are very noticable cyclical patterns in abundance for some guilds.
+```{r echo=F, message=F, error=F, warning=F}
+  
+wbird_by_guild_surv_mean %>% 
+  filter(guild.name != "Planktivore") %>% 
+  mutate(survey.number = as.factor(survey.num)) %>% 
+ggplot() +
+  geom_point(aes(x = year, y = guild.abund)) +
+  geom_line(aes(x = year, y = guild.abund)) +
+  stat_smooth(aes(x = year, y = guild.abund)) +
+  ylab("Abundance") +
+  ggtitle("Mean (across surveys) waterbird abundance") +
+  facet_wrap(~guild.name, scales = "free") +
+  theme_classic() +
+  theme(plot.margin=unit(c(0,1,0,0),"cm"))
+
+
+
+
+```
+

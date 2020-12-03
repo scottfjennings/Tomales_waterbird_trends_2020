@@ -1,0 +1,65 @@
+common.name,alpha.code,guild,guild2,tomales,vilchis,diving,plunge.diving,surface seizing,dabbling,intertidal foraging,scavenging,forage fish,demersal fish,fish roe,mammals.birds,snails,mussels.clams,crustaceans,plants,notes
+Western Grebe,WEGR,Piscivore,,TRUE,TRUE,yes,no,no,no,no,no,yes,no,no,no,no,no,no,no,
+Clark's Grebe,CLGR,Piscivore,,TRUE,NA,yes,no,no,no,no,no,yes,no,no,no,no,no,no,no,copied from WEGR; BoW suggest similar to WEGR
+Western/Clark's Grebe,WCGR,Piscivore,,TRUE,NA,yes,no,no,no,no,no,yes,no,no,no,no,no,no,no,copied from WEGR 
+Red-necked Grebe,RNGR,Piscivore,,TRUE,TRUE,yes,no,no,no,no,no,yes,yes,no,no,no,no,no,no,
+Horned Grebe,HOGR,Diving benthivore,,TRUE,TRUE,yes,no,no,no,no,no,no,yes,no,no,no,no,yes,no,
+Horned/Eared Grebe,HEGR,Diving benthivore,,TRUE,NA,yes,no,yes,no,no,no,no,yes,no,no,yes,no,yes,no,"copied from EAGR, which has 1 more yes than HOGR"
+Eared Grebe,EAGR,Diving benthivore,,TRUE,NA,yes,no,yes,no,no,no,no,yes,no,no,yes,no,yes,no,filled based on BoW
+Pied-billed Grebe,PBGR,Diving benthivore,,TRUE,NA,yes,no,yes,no,no,no,no,yes,no,no,no,no,yes,no,filled based on BoW
+Common Loon,COLO,Piscivore,,TRUE,TRUE,yes,no,no,no,no,no,yes,yes,no,no,no,no,no,no,
+Loon,LOON,Piscivore,,TRUE,NA,yes,no,no,no,no,no,yes,yes,no,no,no,no,no,no,copied from other loons
+Red-throated/Pacific Loon,RTPALO,Piscivore,,TRUE,NA,yes,no,no,no,no,no,yes,yes,no,no,no,no,no,no,both spp same
+Pacific/Common Loon,PCLO,Piscivore,,TRUE,NA,yes,no,no,no,no,no,yes,yes,no,no,no,no,no,no,both spp same
+Yellow-billed Loon,YBLO,Piscivore,,TRUE,NA,yes,no,no,no,no,no,yes,yes,no,no,no,no,no,no,"copied from other loons, but BoW suggests invert prey not in vilchis list"
+Pacific Loon,PALO,Piscivore,,TRUE,TRUE,yes,no,no,no,no,no,yes,yes,no,no,no,no,no,no,
+Red-throated Loon,RTLO,Piscivore,,TRUE,TRUE,yes,no,no,no,no,no,yes,yes,no,no,no,no,no,no,
+Rhinoceros Auklet,RHAU,Piscivore,,TRUE,TRUE,yes,no,no,no,no,no,yes,no,no,no,no,no,no,no,
+Cassin's Auklet,CAAU,Planktivore,,TRUE,NA,yes,no,no,no,no,no,no,no,no,no,no,no,yes,no,filled based on BoW
+Common Murre,COMU,Piscivore,Planktivore,TRUE,TRUE,yes,no,no,no,no,no,yes,no,no,no,no,no,no,no,
+Caspian Tern,CATE,Piscivore,,TRUE,NA,no,yes,yes,no,no,no,yes,no,no,no,no,no,no,no,
+Forster's Tern,FOTE,Piscivore,,TRUE,NA,no,yes,yes,no,no,no,yes,no,no,no,no,no,no,no,
+Cormorant,CORM,Piscivore,,TRUE,NA,yes,no,no,no,no,no,yes,yes,no,no,no,no,no,no,copied from BRAC and DCCO
+Double-crested Cormorant,DCCO,Piscivore,,TRUE,TRUE,yes,no,no,no,no,no,yes,yes,no,no,no,no,no,no,
+Brandt's Cormorant,BRAC,Piscivore,,TRUE,TRUE,yes,no,no,no,no,no,yes,yes,no,no,no,no,no,no,filled based on BoW; same as DCCO
+Pelagic Cormorant,PECO,Piscivore,,TRUE,TRUE,yes,no,no,no,no,no,yes,yes,no,no,no,no,yes,no,
+American White Pelican,AWPE,Piscivore,,TRUE,NA,no,no,no,no,no,no,yes,no,no,no,no,no,no,no,filled based on BoW
+Brown Pelican,BRPE,Piscivore,,TRUE,NA,no,yes,no,no,no,no,yes,no,no,no,no,no,no,no,filled based on BoW
+Common Merganser,COME,Piscivore,,TRUE,NA,yes,no,no,no,no,no,yes,yes,yes,yes,yes,no,yes,no,filled based on BoW; mammal and bird rare; RBME BoW suggest all mergus eat fish eggs
+Merganser,COMERBME,Piscivore,,TRUE,TRUE,yes,no,,no,no,no,yes,yes,yes,no,,no,yes,,filled based on shared values for COME and RBME; left blank where values differ
+Red-breasted Merganser,RBME,Piscivore,,TRUE,NA,yes,no,yes,no,no,no,yes,yes,yes,no,no,no,yes,yes,filled based on BoW
+Hooded Merganser,HOME,Piscivore,,TRUE,TRUE,yes,no,no,no,no,no,no,yes,no,no,no,no,yes,no,
+Mallard,MALL,Omnivore,,TRUE,TRUE,no,no,no,yes,yes,no,no,no,no,no,no,no,no,yes,
+Gadwall,GADW,Herbivore,,TRUE,NA,no,no,no,yes,yes,no,no,no,no,no,no,no,no,yes,filled based on BoW
+Eurasian Wigeon,EUWI,Herbivore,,TRUE,NA,no,no,no,yes,yes,no,no,no,no,no,no,no,no,yes,copied from AMWI
+American Wigeon,AMWI,Herbivore,,TRUE,TRUE,no,no,no,yes,yes,no,no,no,no,no,no,no,no,yes,
+Green-winged Teal,AGWT,Omnivore,,TRUE,NA,no,no,no,yes,yes,no,no,no,no,no,yes,no,yes,yes,BoW
+Unidentified Teal,UNTE,Omnivore,,TRUE,NA,no,no,no,yes,yes,no,no,no,no,no,yes,no,yes,yes,copied from AGWT
+Cinnamon Teal,CITE,Omnivore,,TRUE,NA,no,no,no,yes,yes,no,no,no,no,no,yes,no,yes,yes,BoW
+Northern Shoveler,NSHO,Omnivore,,TRUE,NA,no,no,no,yes,yes,no,no,no,no,no,yes,no,yes,yes,BoW
+Northern Pintail,NOPI,Herbivore,,TRUE,TRUE,no,no,no,yes,yes,no,no,no,no,no,yes,no,yes,yes,
+Wood Duck,WODU,Omnivore,,TRUE,NA,no,no,no,yes,yes,no,no,no,no,no,yes,no,no,yes,BoW
+Redhead,REDH,Diving benthivore,,TRUE,NA,yes,no,yes,yes,yes,no,no,no,yes,no,yes,no,no,yes,BoW
+Canvasback,CANV,Diving benthivore,,TRUE,NA,yes,no,yes,yes,yes,no,no,no,no,no,yes,yes,no,yes,BoW
+Greater Scaup,GRSC,Diving benthivore,,TRUE,NA,yes,no,no,no,no,no,no,no,yes,no,yes,yes,yes,yes,BoW
+Scaup,SCAUP,Diving benthivore,,TRUE,TRUE,yes,no,no,no,no,no,no,no,yes,no,yes,yes,yes,yes,BoW
+Lesser Scaup,LESC,Diving benthivore,,TRUE,NA,yes,no,no,no,no,no,no,no,yes,no,yes,yes,yes,yes,BoW
+Ring-necked Duck,RNDU,Diving benthivore,,TRUE,NA,yes,no,no,yes,no,no,no,no,no,no,yes,yes,yes,yes,BoW
+Common Goldeneye,COGO,Diving benthivore,,TRUE,NA,yes,no,no,no,no,no,no,yes,yes,no,yes,yes,yes,yes,BoW
+Barrow's Goldeneye,BAGO,Diving benthivore,,TRUE,NA,yes,no,no,no,no,no,no,yes,yes,no,yes,yes,yes,yes,BoW
+Bufflehead,BUFF,Diving benthivore,,TRUE,TRUE,yes,no,no,no,no,no,no,no,yes,no,yes,yes,yes,no,
+Long-tailed Duck,LTDU,Diving benthivore,,TRUE,TRUE,yes,no,no,no,no,no,no,no,yes,no,yes,yes,yes,no,
+Harlequin Duck,HARD,Diving benthivore,,TRUE,TRUE,yes,no,no,no,no,no,no,no,yes,no,yes,yes,yes,no,
+King Eider,KIEI,Diving benthivore,,TRUE,NA,yes,no,no,no,no,no,no,no,yes,no,yes,yes,yes,yes,BoW
+Black Scoter,BLSC,Diving benthivore,,TRUE,NA,yes,no,no,no,no,no,no,no,yes,no,yes,yes,yes,yes,BoW
+Scoter,SCOTER,Diving benthivore,,TRUE,TRUE,yes,no,no,no,no,no,no,no,yes,no,yes,yes,yes,yes,BoW
+White-winged Scoter,WWSC,Diving benthivore,,TRUE,NA,yes,no,no,no,no,no,no,no,yes,no,yes,yes,yes,yes,BoW
+Surf Scoter,SUSC,Diving benthivore,,TRUE,NA,yes,no,no,no,no,no,no,no,yes,no,yes,yes,yes,yes,BoW
+Ruddy Duck,RUDU,Diving benthivore,,TRUE,TRUE,yes,no,no,no,no,no,no,no,no,no,yes,yes,yes,yes,
+Ross's Goose,ROGO,Herbivore,,TRUE,NA,no,no,no,no,no,no,no,no,no,no,no,no,no,yes,BoW
+Greater White-fronted Goose,GWFG,Herbivore,,TRUE,NA,no,no,no,no,no,no,no,no,no,no,no,no,no,yes,BoW
+Canada Goose,CAGO,Herbivore,,TRUE,TRUE,no,no,no,yes,no,no,no,no,no,no,no,no,no,yes,
+Black Brant,BLBR,Herbivore,,TRUE,TRUE,no,no,yes,no,yes,no,no,no,no,no,no,no,no,yes,BoW
+Mute Swan,MUSW,Herbivore,,TRUE,NA,no,no,yes,yes,no,no,no,no,no,no,yes,no,no,yes,BoW
+American Coot,AMCO,Omnivore,,TRUE,NA,yes,no,yes,yes,no,no,no,yes,no,no,yes,no,yes,yes,BoW
+Coot/Scaup/Bufflehead,AMCOGRSCLESCBUFF,,,TRUE,NA,,no,,,,,,,,,,,,,not much agreement among spp

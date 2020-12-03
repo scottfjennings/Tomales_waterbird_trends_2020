@@ -1,0 +1,40 @@
+---
+date: "`r Sys.Date()`"
+author: "Scott Jennings"
+title: "Simplifying Vilchis et al. guilds"
+output: 
+  officedown::rdocx_document:
+    mapstyles:
+      Normal: ['First Paragraph']
+---
+
+```{r message=FALSE, warning=FALSE, error=FALSE}
+library(tidyverse)
+library(officedown)
+library(officer)
+library(here)
+
+
+```
+
+
+```{r message=FALSE, warning=FALSE, error=FALSE}
+
+# guilds_foraging_diet_classification.csv has the foraging guild classification of
+# Vilchis, L. I., Johnson, C. K., Evenson, J. R., Pearson, S. F., Barry, K. L., Davidson, P., … Gaydos, J. K. (2014). Assessing ecological correlates of marine bird declines to inform marine conservation. Conservation Biology, 29(1), 154–163. https://doi.org/10.1111/cobi.12378
+# which was extracted with code/vilchis_guilds.R
+# and to which I filled in classification for species not included in that paper.
+
+complex_guilds <- read.csv(here("data_files/guilds_foraging_diet_classification.csv"))
+```
+
+```{r message=FALSE, warning=FALSE, error=FALSE}
+
+# for now I think it only makes sense to 
+diet_guilds <- complex_guilds %>% 
+  select(common.name, alpha.code, guild, forage.fish, demersal.fish, fish.roe, snails, mussels.clams, crustaceans, plants)
+
+forage_guilds <- complex_guilds %>% 
+  select(common.name, alpha.code, guild, diving, plunge.diving, surface.seizing, dabbling, intertidal.foraging)
+
+```

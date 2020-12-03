@@ -1,0 +1,137 @@
+---
+title: "How many waterbirds are grouped"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = TRUE)
+knitr::opts_chunk$set(error = TRUE)
+```
+
+
+
+```{r}
+
+# basic raw data visualization showing how many birds are left in species groups vs  how many are IDed to species
+
+# packages, source ----
+library(tidyverse)
+library(lubridate)
+options(scipen = 999)
+
+source("C:/Users/scott.jennings/Documents/Projects/R_general/utility_functions/bird_utility_functions.r")
+source("C:/Users/scott.jennings/Documents/Projects/water_birds/code/utility/waterbird_utility_functions.r")
+# data ----
+# allocated, negative tallied waterbird data
+wbirds4analysis <- readRDS("C:/Users/scott.jennings/Documents/Projects/water_birds/data_files/working_rds/wbirds4analysis") %>% 
+  wbird_add_study_day() 
+
+group_props <- wbirds4analysis %>% 
+  add_group_name() %>% 
+  group_by(date, group.alpha.code, alpha.code) %>% 
+  summarise(date.total = sum(section.final)) %>% 
+  ungroup() %>% 
+  group_by(date, group.alpha.code) %>% 
+  mutate(date.group.total = sum(date.total)) %>% 
+  ungroup() %>% 
+  mutate(spp.prop.total = date.total/date.group.total,
+         groupie = ifelse(alpha.code %in% useful_groupies, 1, 0))
+
+#make_group_plot <- function(spp.group) {
+#group_props %>% 
+#  filter(group.alpha.code == spp.group) %>% 
+#ggplot() +
+#  geom_density(aes(x = spp.prop.total, fill = alpha.code, color = alpha.code)) +
+#  xlab("Each species proportion of total") +
+#    theme_bw() +
+#    theme(legend.title = element_blank())
+#}
+
+
+make_group_plot <- function(spp.group) {
+group_props %>% 
+  filter(group.alpha.code == spp.group) %>% 
+    group_by(alpha.code) %>% 
+    mutate(survey.index = row_number()) %>% 
+ggplot() +
+  geom_col(aes(x = survey.index, y = date.total, fill = alpha.code)) +
+    theme_bw() +
+    theme(legend.title = element_blank())
+}
+
+
+filter(group_props, alpha.code %in% useful_groupies, spp.prop.total > 0.05) %>% view()
+```
+
+
+```{r}
+
+make_group_plot("LOON")
+```
+
+
+
+
+
+```{r}
+make_group_plot("RTPALO")
+
+
+```
+
+
+
+
+
+
+
+
+```{r}
+make_group_plot("CORM") 
+
+
+```
+
+
+
+
+
+
+
+
+```{r}
+make_group_plot("HEGR") 
+
+```
+
+
+
+
+
+
+
+
+```{r}
+make_group_plot("WCGR")
+
+
+```
+
+
+
+
+
+
+
+
+```{r}
+make_group_plot("PCLO") 
+
+```
+
+
+
+
+
