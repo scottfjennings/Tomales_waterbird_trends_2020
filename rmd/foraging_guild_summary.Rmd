@@ -7,11 +7,13 @@ output:
 fig_width: 6
 ---
 
+Summary of number of surveys per year, which species were assigned to which foraging guild by NW, and basic raw data plots for each guild.
+
 ```{r echo=F, message=F, error=F, warning=F}
 
 
 
-# basic raw data visualization
+
 
 # packages, source ----
 library(tidyverse)
