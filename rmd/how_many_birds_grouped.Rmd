@@ -3,6 +3,8 @@ title: "How many waterbirds are grouped"
 output: word_document
 ---
 
+Basic raw data visualization showing how many birds are left in species groups vs  how many are IDed to species
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(message = FALSE)
@@ -14,7 +16,6 @@ knitr::opts_chunk$set(error = TRUE)
 
 ```{r}
 
-# basic raw data visualization showing how many birds are left in species groups vs  how many are IDed to species
 
 # packages, source ----
 library(tidyverse)
