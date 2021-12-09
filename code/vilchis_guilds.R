@@ -34,12 +34,14 @@ saveRDS(app2_table_df, "data_files/rds/vilchis_guilds")
 # everything else ----
 # once extracted, run from here down
 library(tidyverse)
-source("C:/Users/scott.jennings/Documents/Projects/R_general/utility_functions/bird_utility_functions.r")
+library(birdnames)
 
 
 
 vilchis_guilds <- readRDS("data_files/rds/vilchis_guilds") %>% 
-  bird_taxa_filter(join_taxa = c("common.name", "common.name"), drop_cols = c("species.number", "order", "family", "subfamily", "genus", "species"))
+  mutate(common.name = gsub(" species", "", common.name),
+         common.name = gsub(" Species", "", common.name),
+         alpha.code = translate_bird_names(common.name, "common.name", "alpha.code"))
 
 # vilchis_spp <- vilchis_guilds %>% 
 #  mutate(common.name.orig = common.name) %>% 
