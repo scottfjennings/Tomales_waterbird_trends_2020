@@ -35,6 +35,7 @@ colnames(moci)[grepl("Central", colnames(moci))] <- "central"
 mean_north_moci <- moci %>% 
   rename_with(tolower) %>% 
   mutate(study.year = ifelse(season == "JFM", year - 1, year)) %>% 
+  filter(season %in% c("JFM", "OND")) %>% 
   group_by(study.year) %>% 
   summarise(study.year.mean.moci = mean(north),
          study.year.sd.moci = sd(north))
