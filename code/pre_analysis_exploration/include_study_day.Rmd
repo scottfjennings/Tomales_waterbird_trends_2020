@@ -1,0 +1,190 @@
+---
+title: "How to account for study day?"
+author: "Scott Jennings"
+date: "12/7/2021"
+output:
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      error = FALSE,
+                      warning = FALSE)
+```
+
+```{r}
+
+
+# packages, source ----
+library(tidyverse)
+library(lubridate)
+library(here)
+library(flextable)
+library(birdnames)
+options(scipen = 999)
+
+source("C:/Users/scott.jennings/Documents/Projects/water_birds/ACR_waterbird_data_management/code/utility/waterbird_utility_functions.r")
+source("C:/Users/scott.jennings/Documents/Projects/water_birds/waterbird_analyses/Tomales_waterbird_trends_2020/code/analysis_utilities.r")
+
+# data ----
+# allocated, negative tallied waterbird data
+
+
+wbirds4analysis <- readRDS("C:/Users/scott.jennings/Documents/Projects/water_birds/ACR_waterbird_data_management/data_files/working_rds/wbirds4analysis") %>% 
+  wbird_add_study_day() 
+
+```
+
+
+
+
+We conducted 1-4 censuses per year. We are interested an estimate of the annual number of waterbirds using Tomales Bay. We have 2 options to handle study day to arrive at an annual estimate:  
+
+1. average (or otherwise summarize; e.g. median, 75th percentile) across all censuses in each year to derive an annual estimated mean number of birds, and use this value as the response in models  
+    +  advantage: relatively simple math and yields simpler models with fewer covariates  
+    +  disadvantage: within year variance in bird abundance is lost in our estimate of between year changes in abundance. number of censuses done is considered unimportant in our estimate of annual abundance (unless we include some weighting)  
+
+2. treat counted abundance on each census as the response in models and include study day directly as a model variable  
+    +  advantage: between census variability and number of censuses done are included directly in the estimate of between year changes in abundance  
+    +  disadvantage: more complicated model structures; need to decide how to model study day (I think quadratic would be a logical, flexible choice)  
+
+
+
+To help choose between these, we'll do some basic data exploration and visualizations looking at the within year variability in abundance counts. 
+
+
+First, how many counts were done each year?
+
+
+
+```{r}
+wbirds4analysis %>% 
+  distinct(study.year, study.day) %>% 
+  group_by(study.year) %>% 
+  count() %>% 
+  ggplot() +
+  geom_line(aes(x = study.year, y = n)) +
+  labs(x = "",
+       y = "Number of surveys done") +
+  theme_bw()
+```
+
+```{r}
+wbirds4analysis %>% 
+  distinct(study.year, study.day) %>% 
+  group_by(study.year) %>% 
+  count() %>% 
+  ungroup() %>% 
+  group_by(n) %>% 
+  count() %>% 
+  flextable::flextable() %>% 
+  set_header_labels(n = "number of censuses done",
+                    nn = "number of years with this many censuses") %>% 
+  autofit()
+```
+
+
+
+Is the variation among counts in the same year constant across years?
+
+
+```{r}
+day_spp_total <- wbirds4analysis %>% 
+  mutate(alpha.code = ifelse(alpha.code %in% c("GRSC", "LESC"), "SCAUP", alpha.code)) %>%
+  filter(alpha.code %in% filter(readRDS("C:/Users/scott.jennings/Documents/Projects/water_birds/ACR_waterbird_data_management/data_files/working_rds/num_years_detected"), num.year.detected >= 20)$alpha.code, !alpha.code %in% c("EUWI", "HEGR", "WCGR", "LOON", "PCLO")) %>% 
+  group_by(study.year, study.day, alpha.code) %>% 
+  summarise(day.spp.total = sum(section.final)) %>% 
+  ungroup() 
+
+year_spp_variation <- day_spp_total %>% 
+  group_by(study.year, alpha.code) %>% 
+  summarise(year.spp.max = max(day.spp.total),
+         year.spp.med = median(day.spp.total),
+            year.spp.mean = mean(day.spp.total),
+            year.spp.sd = sd(day.spp.total),
+            year.spp.p75 = quantile(day.spp.total, 0.75)) %>% 
+  ungroup() %>% 
+  arrange(alpha.code, study.year)
+  
+year_spp_variation %>% 
+  distinct(study.year, alpha.code, year.spp.sd) %>% 
+ggplot() +
+  geom_boxplot(aes(x = as.factor(study.year), y = year.spp.sd)) +
+  labs(x = "",
+       y = "Within year standard deviation of count") +
+  theme_bw()
+  
+```
+
+
+
+There are some high variance year X species instances. Does this high variance lead to different inference if the mean, median, 75th percentile, or max value are used to estimate trends?
+
+It appears that the overall pattern in abundance is relatively insensitive to how we summarize across visits within a year. Mean and median generally yield similar estimates each year, but 75th percentile and especially maximum enhances the effect of some high counts (we probably wouldn't really use max; it is included for reference). The result of this is that we may end up with different species meeting the definition of "concerning decline" (based on IUCN 20% over 10 years) if we use mean/median vs 75th percentile. For some species (MALL, CLGR, RTLO, BRAC, DCCO, AMWP) we may want to check mean and 75th percentile.
+
+A note on ecological interpretation: The 75th percentile will allow high counts to have a greater effect on the estimate of annual abundance for a species when there is high variation among counts that year. It may be more important to consider individual counts when we are investigating ecological factors associated with variation in abundance.
+
+```{r}
+year_spp_variation_long <- year_spp_variation %>% 
+  ungroup() %>% 
+  select(-year.spp.sd) %>% 
+  pivot_longer(cols = contains("year.spp"), names_to = "which.summary") %>% 
+  mutate(which.summary = factor(which.summary, levels = c("year.spp.max", "year.spp.med", "year.spp.mean", "year.spp.p75"), 
+                                   labels = c("max", "median", "mean", "75th percentile")))
+```
+
+
+```{r}
+plot_raw_trends <- function(ztaxa, ztaxa.title) {
+ggplot() +
+  geom_point(data = day_spp_total %>% bird_taxa_filter(keep_taxa = ztaxa), aes(x = study.year, y = day.spp.total)) +
+  stat_smooth(data = year_spp_variation_long %>% bird_taxa_filter(keep_taxa = ztaxa), aes(x = study.year, y = value, color = which.summary), se = FALSE) +
+  facet_wrap(~alpha.code, scales = "free_y") +
+  labs(x = "",
+       y = "number of birds counted",
+       title = ztaxa.title,
+       color = "Trend estimated by") +
+  theme_bw()
+}
+```
+
+```{r, fig.width=7.5}
+
+plot_raw_trends(dabbler_goose_swan_genera, "Dabblers, geese")
+
+```
+
+
+```{r, fig.width=7.5}
+
+plot_raw_trends(diver_seaduck_genera, "Diving ducks")
+
+```
+
+
+
+```{r, fig.width=7.5}
+
+plot_raw_trends(c("Lophodytes", "Mergus"), "Mergansers")
+
+```
+
+
+```{r, fig.width=7.5}
+
+plot_raw_trends(c("Podicipediformes"), "Grebes")
+
+```
+
+```{r, fig.width=7.5}
+
+plot_raw_trends(c("Gaviiformes"), "Loons")
+
+```
+
+```{r, fig.width=7.5}
+
+plot_raw_trends(corm_peli_taxa, "Cormorants and pelicans")
+
+```
