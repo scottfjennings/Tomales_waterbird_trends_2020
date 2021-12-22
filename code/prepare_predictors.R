@@ -7,6 +7,8 @@ library(here)
 
 
 # raptors from shorebird surveys ----
+# raptors currently excluded from trend analysis 12/12/2021
+
 raptors <- readRDS("C:/Users/scott.jennings/Documents/Projects/shorebirds/shorebird_data_work/data_files/rds/raptors4analysis")
 
 annual_mean_winter_raptors <- raptors %>% 
@@ -37,8 +39,7 @@ mean_north_moci <- moci %>%
   mutate(study.year = ifelse(season == "JFM", year - 1, year)) %>% 
   filter(season %in% c("JFM", "OND")) %>% 
   group_by(study.year) %>% 
-  summarise(study.year.mean.moci = mean(north),
-         study.year.sd.moci = sd(north))
+  summarise(fall.mean.moci = mean(north))
 
 # rainfall ----
 tomales_watershed_month_mean_rains <- read.csv("C:/Users/scott.jennings/Documents/Projects/Rainfall/derived_data/tomales_watershed_mean_month_rain.csv")
@@ -50,7 +51,7 @@ rain <- tomales_watershed_month_mean_rains %>%
          study.month = ifelse(month <= 2, month + 12, month))
 
 fall_rain <- rain %>% 
-  filter(study.month > 6) %>% 
+  filter(study.month > 8) %>% 
   group_by(study.year) %>% 
   summarise(total.fall.rain = sum(mean.rain))
 
@@ -59,7 +60,8 @@ year_rain <- rain %>%
   summarise(total.year.rain = sum(mean.rain))
 
 # join predictors
-predictors <- full_join(mean_north_moci, annual_mean_winter_raptors) %>% 
+predictors <- mean_north_moci %>% 
+  #full_join(., annual_mean_winter_raptors) %>% 
   full_join(., fall_rain) %>% 
   full_join(., year_rain) %>% 
   arrange(study.year)
