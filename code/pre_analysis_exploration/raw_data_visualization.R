@@ -10,14 +10,33 @@ library(here)
 library(birdnames)
 options(scipen = 999)
 
-source("C:/Users/scott.jennings/Documents/Projects/water_birds/ACR_waterbird_data_management/code/utility/waterbird_utility_functions.r")
+source("C:/Users/scott.jennings/Documents/Projects/core_monitoring_research/water_birds/waterbird_data_work/code/utility/waterbird_utility_functions.r")
+
+wbird_trend_keep_taxa <- c("Anseriformes", "Alcidae", "Sterninae", "Gaviiformes", "Pelecanidae", "Podicipediformes", "Suliformes")
+
 
 # data ----
 # allocated, negative tallied waterbird data
 
+# baywide total for each species each day
+wbirds4analysis <- readRDS("C:/Users/scott.jennings/Documents/Projects/core_monitoring_research/water_birds/ACR_waterbird_data_management/data_files/working_rds/new_neg_machine_bay_total") %>% 
+  wbird_add_study_day() %>% 
+  bird_taxa_filter(keep_taxa = wbird_trend_keep_taxa) %>% 
+  mutate(alpha.code = ifelse(alpha.code %in% c("GRSC", "LESC"), "SCAUP", alpha.code)) %>%
+  filter(!alpha.code %in% c("EUWI", "HEGR", "WCGR", "LOON", "PCLO")) %>% 
+  filter_observed_x_years(x_years = 20) %>% 
+  wbird_add_survey_period()
 
-wbirds4analysis <- readRDS("C:/Users/scott.jennings/Documents/Projects/water_birds/ACR_waterbird_data_management/data_files/working_rds/wbirds4analysis") %>% 
-  wbird_add_study_day() 
+
+# intraseasonal variation in abundance
+wbirds4analysis %>% 
+  bird_taxa_filter(keep_taxa = "Suliformes") %>% 
+  ggplot() +
+  geom_line(aes(x = survey.per, y = bay.total, color = as.factor(study.year))) +
+  stat_smooth(aes(x = survey.per, y = bay.total)) +
+  facet_wrap(~alpha.code, scales = "free_y")
+
+
 
 # waterbird foraging guild membership
 # recieved in xlsx via email from NW on 2020/08/26
@@ -52,9 +71,17 @@ vilchis_diet <- vilchis_guilds %>%
   pivot_longer(cols = -common.name, names_to = "diet.type", values_to = "done") %>% 
   filter(done == "yes")
   
-vilchis_warnock_diet <- vilchis_guilds %>% 
-  select(common.name, `forage fish`, `demersal fish`, `fish roe`, `mammals &/or birds`, snails, mussels, crustaceans, plants) %>% 
-  full_join(wbird_guilds)
+  
+vilchis_warnock_diet <-  vilchis_diet %>% 
+  group_by(common.name) %>% 
+  summarise(diets = paste(diet.type, collapse = ", "),
+            num.diet = n()) %>% 
+  mutate(common.name = gsub(" Species", "", common.name)) %>% 
+  full_join(wbird_guilds %>% 
+              select(common.name, guild, guild2) %>% 
+              mutate(common.name = ifelse(grepl("caup", common.name), "Scaup", common.name)) %>% 
+              distinct()) %>% 
+  bird_taxa_filter(keep_taxa = wbird_trend_keep_taxa)
 
 # some summaries created by water_birds/code/data_summary_visualize/visualize_species_detections_proportions
 ave_proportion_each_year <- readRDS("C:/Users/scott.jennings/Documents/Projects/water_birds/ACR_waterbird_data_management/data_files/working_rds/ave_proportion_each_year")
