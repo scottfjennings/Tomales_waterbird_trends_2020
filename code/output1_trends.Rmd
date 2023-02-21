@@ -1,0 +1,174 @@
+---
+title: "output1_trends"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+library(birdnames)
+library(flextable)
+library(officer)
+
+custom_bird_list <- readRDS("C:/Users/scott.jennings/Documents/Projects/birdnames_support/data/custom_bird_list")
+
+
+```
+
+```{r}
+
+
+
+per_change_year2 <- readRDS(here("data_files/percent_change_wide_quad")) %>% 
+  left_join(., readRDS(here("fitted_models/trend_result_summary")) %>% dplyr::select(alpha.code, pval)) %>% 
+  mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
+         taxonomic.order = translate_bird_names(common.name, "common.name", "taxonomic.order"),
+         taxonomic.order = as.numeric(taxonomic.order))  %>% 
+  arrange(taxonomic.order, start.study.year) %>% 
+  select(-alpha.code, -taxonomic.order)
+
+per_change_year <- readRDS(here("data_files/percent_change_wide_lin")) %>% 
+  left_join(., readRDS(here("fitted_models/trend_result_summary")) %>% dplyr::select(alpha.code, pval)) %>% 
+  mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
+         taxonomic.order = translate_bird_names(common.name, "common.name", "taxonomic.order"),
+         taxonomic.order = as.numeric(taxonomic.order))  %>% 
+  arrange(taxonomic.order) %>% 
+  select(-alpha.code, -taxonomic.order)
+
+no_trend <- readRDS(here("fitted_models/all_predicted_noyear")) %>% 
+  select(alpha.code, contains("resp")) %>% 
+  distinct() %>% 
+  left_join(., readRDS(here("fitted_models/trend_result_summary")) %>% dplyr::select(alpha.code, pval)) %>% 
+  mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
+         taxonomic.order = translate_bird_names(common.name, "common.name", "taxonomic.order"),
+         taxonomic.order = as.numeric(taxonomic.order),
+         trend.segment.percent.change = 0,
+         year.effect = "none") %>% 
+  rename(start.predicted.resp = predicted.resp,
+         start.uci.resp = uci.resp,
+         start.lci.resp = lci.resp) %>% 
+  arrange(taxonomic.order) %>% 
+  select(-alpha.code, -taxonomic.order)
+
+
+trend_result_summary_out <- bind_rows(data.frame(common.name = "Quadratic year"),
+                                  per_change_year2,
+                                  data.frame(common.name = "Linear year"),
+                                  per_change_year,
+                                  data.frame(common.name = "No trend"),
+                                  no_trend) %>% 
+  mutate(start.coef.ci = paste(round(start.predicted.resp, 1), " (", round(start.lci.resp, 1), " to ", round(start.uci.resp, 1), ")", sep = ""),
+         end.coef.ci = paste(round(end.predicted.resp, 1), " (", round(end.lci.resp, 1), " to ", round(end.uci.resp, 1), ")", sep = ""),
+         trend.segment.percent.change = round(trend.segment.percent.change, 1),
+         pval = ifelse(pval >= 0.01, as.character(round(pval, 2)), "<0.01")) %>% 
+  dplyr::select(common.name, pval, trend.segment, start.study.year, start.coef.ci, end.study.year, end.coef.ci, trend.segment.percent.change) %>% 
+  mutate(pval = replace_na(pval, ""),
+         trend.segment.percent.change = ifelse(trend.segment.percent.change/(as.numeric(end.study.year) - as.numeric(start.study.year)) < -2 &
+                                                 (as.numeric(end.study.year) - as.numeric(start.study.year)) >= 10, paste(trend.segment.percent.change, "*", sep = ""), trend.segment.percent.change),
+         trend.segment.percent.change = replace_na(trend.segment.percent.change, ""))
+```
+
+Table XX. Changes in abundance of waterbird species at Tomales Bay, Marin County, CA, 1991-2019. Estimated abundance changes are from selected models. Significance of year^2^ and year coefficients was estimated using the Likelihood Ratio Test to compare models with the indicated year variable to a nested model without that variable (year^2^ vs year and year vs no year). Statistical significance was evaluated at the P ≤ 0.05 level. All models also contained variables representing rainfall and nearshore ocean productivity, which we expected to have some influence on waterbird abundance. Species are grouped by selected year effect and arranged taxonomically. Where year^2^ was the best supported year effect, we show estimated abundance and percent change for the time segments before and after the vertex of the quadratic curve separately. Where year was best supported we show estimated abundance and percent change across the entire study period. Where no year effect was supported we show estimated mean abundance across the entire study period. Percent changes marked with "*" indicate abundance declines in accordance with population level declines that warrant IUCN Red Listing (≥20% over 10 years or ≥2%/year).
+```{r}
+trend_result_summary_out %>% 
+  mutate(across(contains("coef.ci"), ~ ifelse(grepl("NA", .x), "", .x)),
+         trend.segment = ifelse(is.na(trend.segment), "", trend.segment),
+         across(c(common.name, pval), ~ ifelse(trend.segment == "after.vertex", "", .x)),
+         across(contains("year"), ~as.character(.x))) %>% 
+  dplyr::select(-trend.segment) %>% 
+  flextable() %>% 
+  set_header_labels(common.name = "Species",
+                    pval = "LRT P-value",
+                    #trend.segment = "Trend segment",
+                    start.study.year = "Year",
+                    start.coef.ci = "Estimated\nabundance\n(95% CI)",
+                    end.study.year = "Year",
+                    end.coef.ci = "Estimated\nabundance\n(95% CI)",
+                    trend.segment.percent.change = "% change") %>% 
+  add_header_row(values = c("", "Segment start", "Segment end", ""), colwidths = c(2, 2, 2, 1)) %>% 
+  align(j = 2:7, align = "center", part = "all") %>% 
+  border_remove() %>% 
+  border(i = 1, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 1, border.top = fp_border(color = "black"), part = "body") %>% 
+  border(i = nrow(per_change_year2) + 1, border.bottom = fp_border(color = "black"), part = "body") %>%
+  border(i = nrow(per_change_year2) + 1 + nrow(per_change_year) + 1, border.bottom = fp_border(color = "black"), part = "body") %>% 
+  border(j = 1, i = 1, border.bottom = fp_border(color = "black"), part = "body") %>% 
+  border(j = 1, i = nrow(per_change_year2) + 2, border.bottom = fp_border(color = "black"), part = "body") %>%
+  border(j = 1, i = nrow(per_change_year2) + 2 + nrow(per_change_year) + 1, border.bottom = fp_border(color = "black"), part = "body") %>% 
+  border(i = nrow(trend_result_summary_out), border.bottom = fp_border(color = "black"), part = "body") %>% 
+  fontsize(size = 10, part = "all") %>% 
+  width(j = 1, width = 1.5) %>% 
+  width(j = 2, width = 0.5) %>% 
+  width(j = 7, width = 0.6) %>%
+  width(j = c(3, 5), width = 0.45) %>% 
+  width(j = c(4, 6), width = 2)
+
+```
+
+
+```{r fig.width = 8}
+plot_df <- readRDS(here("fitted_models/trend_result_summary")) %>%
+  left_join(readRDS(here("fitted_models/all_trend_predicted"))) %>% 
+  left_join(., readRDS(here("data_files/spp_annual_mean"))) %>% 
+  mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
+         taxonomic.order = translate_bird_names(common.name, "common.name", "taxonomic.order"),
+         taxonomic.order = as.numeric(taxonomic.order)) %>% 
+  select(alpha.code, common.name, taxonomic.order, study.year, contains("resp"), spp.annual.mean, contains("sig"))
+
+
+com_name_levs <- distinct(plot_df, common.name, taxonomic.order) %>% 
+  arrange(taxonomic.order)
+
+plot_df <- plot_df %>% 
+  mutate(common.name = factor(common.name, levels = com_name_levs$common.name))
+
+```
+
+Figure XX. Changes in abundance of waterbird species at Tomales Bay, Marin County, CA, 1991-2019. Line indicates best estimated abundance changes are from selected models. Significance of year^2^ and year coefficients was estimated using the Likelihood Ratio Test to compare models with the indicated year variable to a nested model without that variable (year^2^ vs year and year vs no year). Statistical significance was evaluated at the P ≤ 0.05 level. All models also contained variables representing rainfall and nearshore ocean productivity, which we expected to have some influence on waterbird abundance. Species are grouped by selected year effect then arranged taxonomically.
+```{r fig.width = 8}
+
+
+plot_df %>%
+  filter(sig.year2 == TRUE) %>% 
+  ggplot() +
+  geom_line(aes(x = study.year, y = predicted.resp)) +
+  geom_ribbon(aes(x = study.year, ymin = lci.resp, ymax = uci.resp), alpha = 0.5) +
+  geom_point(aes(x = study.year, y = spp.annual.mean)) +
+  labs(x = "",
+       y = "Abundance",
+       title = "Species with quadratic Year effect") +
+  facet_wrap(~common.name, scales = "free_y") +
+  theme_bw()
+
+
+ggsave(here("figures_output/quad_spp_predicted_trends.png"), width = 6, height = 6)
+
+
+```
+
+
+```{r fig.width = 8}
+plot_df %>% 
+  filter(sig.year == TRUE) %>% 
+  ggplot() +
+  geom_line(aes(x = study.year, y = predicted.resp)) +
+  geom_ribbon(aes(x = study.year, ymin = lci.resp, ymax = uci.resp), alpha = 0.5) +
+  geom_point(aes(x = study.year, y = spp.annual.mean)) +
+  #geom_point(aes(x = study.year, y = fitted), color = "red") +
+  labs(x = "",
+       y = "Abundance",
+       title = "Species with linear Year effect") +
+  facet_wrap(~common.name, scales = "free_y") +
+  theme_bw()
+
+
+ggsave(here("figures_output/linear_spp_predicted_trends.png"), width = 9, height = 6)
+
+
+```
