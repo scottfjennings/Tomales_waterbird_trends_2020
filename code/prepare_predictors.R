@@ -2,6 +2,7 @@
 
 
 library(tidyverse)
+library(lubridate)
 library(here)
 
 
@@ -25,23 +26,22 @@ annual_mean_winter_raptors <- raptors %>%
 
 
 # moci ----
+moci <- readRDS("C:/Users/scott.jennings/Documents/Projects/general_data_sources/oceans/data/moci_long")
 
-moci <- read.csv("C:/Users/scott.jennings/Documents/Projects/oceans/data/CaliforniaMOCI_JFM1991-AMJ2020.csv")
-
-colnames(moci)[grepl("North", colnames(moci))] <- "north"
-colnames(moci)[grepl("Central", colnames(moci))] <- "central"
-
-# I think using the annual mean value of the North section MOCI values makes most sense because:
+# We use the annual mean value of the North section MOCI values for the AMJ, JAS, OND periods because:
 # 1. transport of nutrients is more likely to have a downcoast component than an upcoast component, thus ocean conditions fro Pt Reyes North are more likely to influece TB than from Pt Reyes south. 
 # 2. we lack conclusive prior research suggesting MOCI effect would be strongest at a particular lag, so averaging the prior year's values takes a broad, exploratory view of this variable's importance
-mean_north_moci <- moci %>% 
-  rename_with(tolower) %>% 
-  mutate(study.year = ifelse(season == "JFM", year - 1, year)) %>% 
-  filter(season %in% c("JFM", "OND")) %>% 
-  group_by(study.year) %>% 
-  summarise(fall.mean.moci = mean(north))
 
+# 3. Conditions during JFM may act on current year and next year. so to avoid complicated interpretation just exclude that quarter
+
+mean_north_moci <- moci %>% 
+  filter(season != "JFM", region2 == "Northern CA") %>% 
+  group_by(year) %>% 
+  summarise(mean.moci = mean(moci)) %>% 
+  rename(study.year = year)
+#
 # rainfall ----
+# Feb 2023 decided to use freshwater inflow instead of rainfall
 tomales_watershed_month_mean_rains <- read.csv("C:/Users/scott.jennings/Documents/Projects/Rainfall/derived_data/tomales_watershed_mean_month_rain.csv")
 
 rain <- tomales_watershed_month_mean_rains %>% 
@@ -59,11 +59,31 @@ year_rain <- rain %>%
   group_by(study.year) %>% 
   summarise(total.year.rain = sum(mean.rain))
 
-# join predictors
-predictors <- mean_north_moci %>% 
-  #full_join(., annual_mean_winter_raptors) %>% 
-  full_join(., fall_rain) %>% 
-  full_join(., year_rain) %>% 
+
+# freshwater inflow ----
+# Although Walker Creek flow is meaningful, the Lagunitas and Walker Creek flows are highly correlated (Pearson R = 0.95) but the Lagunitas Flow has higher spikes and better represents the combined freshwater flow into the bay. Using just the Lagunitas flow in this analysis to simplify   
+lacr <- read.csv("C:/Users/scott.jennings/Documents/Projects/general_data_sources/rivers/data/flow_data/LagunitasDischarge.csv") %>% 
+  mutate(date = mdy(datetime)) %>% 
+  dplyr::select(date, mean.daily.cfs) %>% 
+  mutate(study.year = ifelse(month(date) < 3, year(date) - 1, year(date))) %>% 
+  filter(study.year > 1991) 
+
+
+annual_lacr <- lacr %>% 
+  mutate(flow.start = paste(study.year, "-10-01", sep = ""),
+         flow.end = paste(study.year + 1, "-02-15", sep = "")) %>% 
+  filter(date >= flow.start & date <= flow.end) %>% 
+  group_by(study.year) %>% 
+  summarise(annual.freshwater = mean(mean.daily.cfs))
+
+# ggplot(annual_lacr) + geom_line(aes(x = study.year, y = annual.freshwater))
+ 
+
+
+# join predictors ----
+predictors <- annual_lacr %>%  
+  full_join(., mean_north_moci) %>% 
+  mutate(giac = ifelse(study.year < 2009, 0, 1)) %>% 
   arrange(study.year)
 
 saveRDS(predictors, here("data_files/predictors"))
