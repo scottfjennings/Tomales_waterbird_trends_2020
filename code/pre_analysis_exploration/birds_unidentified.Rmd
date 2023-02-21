@@ -1,0 +1,46 @@
+---
+title: "What proportion of birds remain unidentified to species?"
+author: "Scott Jennings"
+date: "12/9/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      error = FALSE,
+                      message = FALSE)
+```
+
+
+
+```{r}
+
+
+# packages, source ----
+library(tidyverse)
+library(lubridate)
+library(here)
+library(flextable)
+library(birdnames)
+options(scipen = 999)
+
+source("C:/Users/scott.jennings/Documents/Projects/water_birds/ACR_waterbird_data_management/code/utility/waterbird_utility_functions.r")
+source("C:/Users/scott.jennings/Documents/Projects/water_birds/waterbird_analyses/Tomales_waterbird_trends_2020/code/analysis_utilities.r")
+
+# data ----
+# allocated, negative tallied waterbird data
+
+
+wbirds4analysis <- readRDS("C:/Users/scott.jennings/Documents/Projects/water_birds/ACR_waterbird_data_management/data_files/working_rds/wbirds4analysis") %>% 
+  wbird_add_study_day() 
+
+```
+
+
+```{r}
+
+
+
+```
+
+

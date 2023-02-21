@@ -24,14 +24,14 @@ library(flextable)
 library(birdnames)
 options(scipen = 999)
 
-source("C:/Users/scott.jennings/Documents/Projects/water_birds/ACR_waterbird_data_management/code/utility/waterbird_utility_functions.r")
-source("C:/Users/scott.jennings/Documents/Projects/water_birds/waterbird_analyses/Tomales_waterbird_trends_2020/code/analysis_utilities.r")
+source("C:/Users/scott.jennings/Documents/Projects/core_monitoring_research/water_birds/waterbird_data_work/code/utility/waterbird_utility_functions.r")
+source("C:/Users/scott.jennings/Documents/Projects/core_monitoring_research/water_birds/waterbird_analyses/Tomales_waterbird_trends_2020/code/analysis_utilities.r")
 
 # data ----
 # allocated, negative tallied waterbird data
 
 
-wbirds4analysis <- readRDS("C:/Users/scott.jennings/Documents/Projects/water_birds/ACR_waterbird_data_management/data_files/working_rds/wbirds4analysis") %>% 
+wbirds4analysis <- readRDS("C:/Users/scott.jennings/Documents/Projects/core_monitoring_research/water_birds/ACR_waterbird_data_management/data_files/working_rds/new_neg_machine_bay_total") %>% 
   wbird_add_study_day() 
 
 ```
@@ -92,18 +92,21 @@ Is the variation among counts in the same year constant across years?
 ```{r}
 day_spp_total <- wbirds4analysis %>% 
   mutate(alpha.code = ifelse(alpha.code %in% c("GRSC", "LESC"), "SCAUP", alpha.code)) %>%
-  filter(alpha.code %in% filter(readRDS("C:/Users/scott.jennings/Documents/Projects/water_birds/ACR_waterbird_data_management/data_files/working_rds/num_years_detected"), num.year.detected >= 20)$alpha.code, !alpha.code %in% c("EUWI", "HEGR", "WCGR", "LOON", "PCLO")) %>% 
-  group_by(study.year, study.day, alpha.code) %>% 
-  summarise(day.spp.total = sum(section.final)) %>% 
-  ungroup() 
+  filter(!alpha.code %in% c("EUWI", "HEGR", "WCGR", "LOON", "PCLO")) %>% 
+  distinct(study.year, alpha.code) %>% 
+  count(alpha.code) %>% 
+  filter(n >= 20) %>% 
+  select(alpha.code) %>% 
+  left_join(wbirds4analysis)
 
 year_spp_variation <- day_spp_total %>% 
   group_by(study.year, alpha.code) %>% 
-  summarise(year.spp.max = max(day.spp.total),
-         year.spp.med = median(day.spp.total),
-            year.spp.mean = mean(day.spp.total),
-            year.spp.sd = sd(day.spp.total),
-            year.spp.p75 = quantile(day.spp.total, 0.75)) %>% 
+  summarise(mum.surveys.detected = n(),
+            year.spp.max = max(bay.total),
+            year.spp.med = median(bay.total),
+            year.spp.mean = mean(bay.total),
+            year.spp.sd = sd(bay.total),
+            year.spp.p75 = quantile(bay.total, 0.75)) %>% 
   ungroup() %>% 
   arrange(alpha.code, study.year)
   
@@ -119,11 +122,10 @@ ggplot() +
 
 
 
-There are some high variance year X species instances. Does this high variance lead to different inference if the mean, median, 75th percentile, or max value are used to estimate trends?
+There are some high variance year X species instances. Does this high variance lead to different inference if the mean, median, 75th percentile, or max value are used to estimate trends? The 75th percentile will allow high counts to have a greater effect on the estimate of annual abundance for a species when there is high variation among counts that year. It may be more important to consider individual counts when we are investigating ecological factors associated with variation in abundance.
 
 It appears that the overall pattern in abundance is relatively insensitive to how we summarize across visits within a year. Mean and median generally yield similar estimates each year, but 75th percentile and especially maximum enhances the effect of some high counts (we probably wouldn't really use max; it is included for reference). The result of this is that we may end up with different species meeting the definition of "concerning decline" (based on IUCN 20% over 10 years) if we use mean/median vs 75th percentile. For some species (MALL, CLGR, RTLO, BRAC, DCCO, AMWP) we may want to check mean and 75th percentile.
 
-A note on ecological interpretation: The 75th percentile will allow high counts to have a greater effect on the estimate of annual abundance for a species when there is high variation among counts that year. It may be more important to consider individual counts when we are investigating ecological factors associated with variation in abundance.
 
 ```{r}
 year_spp_variation_long <- year_spp_variation %>% 
@@ -138,7 +140,7 @@ year_spp_variation_long <- year_spp_variation %>%
 ```{r}
 plot_raw_trends <- function(ztaxa, ztaxa.title) {
 ggplot() +
-  geom_point(data = day_spp_total %>% bird_taxa_filter(keep_taxa = ztaxa), aes(x = study.year, y = day.spp.total)) +
+  geom_point(data = day_spp_total %>% bird_taxa_filter(keep_taxa = ztaxa), aes(x = study.year, y = bay.total)) +
   stat_smooth(data = year_spp_variation_long %>% bird_taxa_filter(keep_taxa = ztaxa), aes(x = study.year, y = value, color = which.summary), se = FALSE) +
   facet_wrap(~alpha.code, scales = "free_y") +
   labs(x = "",
