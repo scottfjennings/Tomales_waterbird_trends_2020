@@ -1,0 +1,145 @@
+---
+title: "trend_analysis_plot_best_model_estimates"
+output: word_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r cars}
+
+# getting and plotting predicted estimates ----
+
+all_spp_lrt1 <- readRDS(here("fitted_models/all_spp_lrt1"))
+all_spp_lrt2 <- readRDS(here("fitted_models/all_spp_lrt2"))
+
+trend_result_summary <- readRDS(here("fitted_models/trend_result_summary"))
+
+
+
+wbird_newdat = data.frame(moci = 0,  # mean value
+                          rain = 653, # mean value 
+                          study.year = seq(1991, 2019))
+
+#
+# for single species at a time ----
+buff <- all_spp_lrt2$BUFF$result$rain_moci
+
+predict(buff, wbird_newdat, type = "link", se.fit = TRUE) %>% 
+  data.frame()
+
+
+fitted(all_spp_lrt1$BRAC$result$year2_rain_moci, type = "response")
+
+predict(all_spp_lrt1$BRAC$result$year2_rain_moci, wbird_newdat, type = "response") %>% 
+  cbind(fitted(all_spp_lrt1$BRAC$result$year2_rain_moci, type = "response")) %>% 
+  cbind(., wbird_newdat %>% dplyr::select(study.year)) %>% 
+  data.frame() %>% 
+  rename(pred.abund = 1,
+         fitted.abund = 2) %>%
+  mutate(alpha.code = "BRAC") %>% 
+  full_join(., filter(spp_annual, alpha.code == "BRAC"), by = c("alpha.code", "study.year")) %>% 
+  dplyr::select(-total.year.rain) %>% 
+  pivot_longer(cols = c("pred.abund", "fitted.abund", "p75.abund", "moci", "rain")) %>% 
+  mutate(zgroup = ifelse(grepl(c("abund|mean"), name), "bird", name)) %>% 
+  ggplot() +
+  geom_line(aes(x = study.year, y = value, color = name)) +
+    facet_wrap(~zgroup, ncol = 1, scales = "free_y")
+    
+  
+
+
+# functions to map across all species ----
+
+extract_predicted_year2 <- function(lrt.obj) {
+  critval <- 1.96 ## approx 95% CI
+  
+  best.mod <- lrt.obj$result$year2_rain_moci
+  
+predict(best.mod, wbird_newdat, type = "link", se.fit = TRUE) %>%  
+  data.frame() %>% 
+  rename(predicted = fit, se = se.fit) %>% 
+  cbind(fitted(best.mod, type = "response") %>% 
+          data.frame() %>% 
+          rename(fitted = 1)) %>% 
+  cbind(., wbird_newdat %>% dplyr::select(study.year)) %>%
+  mutate(uci = predicted + (critval * se),
+         lci = predicted - (critval * se),
+         predicted.resp = best.mod$family$linkinv(predicted),
+         uci.resp = best.mod$family$linkinv(uci),
+         lci.resp = best.mod$family$linkinv(lci),
+         alpha.code = lrt.obj$result$alpha.code)
+}
+
+
+sig_year2_lrt1 <- all_spp_lrt1[filter(trend_result_summary, sig.year2 == TRUE)$alpha.code]
+
+
+all_predicted_year2 <- map_df(sig_year2_lrt1, extract_predicted_year2)
+
+saveRDS(all_predicted_year2, here("fitted_models/all_predicted_year2"))
+#--
+extract_predicted_year <- function(lrt.obj) {
+  critval <- 1.96 ## approx 95% CI
+  
+  best.mod <- lrt.obj$result$year_rain_moci
+  
+predict(best.mod, wbird_newdat, type = "link", se.fit = TRUE) %>%  
+  data.frame() %>% 
+  rename(predicted = fit, se = se.fit) %>% 
+  cbind(fitted(best.mod, type = "response") %>% 
+          data.frame() %>% 
+          rename(fitted = 1)) %>% 
+  cbind(., wbird_newdat %>% dplyr::select(study.year)) %>%
+  mutate(uci = predicted + (critval * se),
+         lci = predicted - (critval * se),
+         predicted.resp = best.mod$family$linkinv(predicted),
+         uci.resp = best.mod$family$linkinv(uci),
+         lci.resp = best.mod$family$linkinv(lci),
+         alpha.code = lrt.obj$result$alpha.code)
+}
+
+sig_year_lrt2 <- all_spp_lrt2[filter(trend_result_summary, sig.year == TRUE)$alpha.code]
+
+all_predicted_year <- map_df(sig_year_lrt2, extract_predicted_year)
+
+saveRDS(all_predicted_year, here("fitted_models/all_predicted_year"))
+
+#--
+extract_predicted_noyear <- function(lrt.obj) {
+  critval <- 1.96 ## approx 95% CI
+  
+  best.mod <- lrt.obj$result$rain_moci
+  
+predict(best.mod, wbird_newdat, type = "link", se.fit = TRUE) %>%  
+  data.frame() %>% 
+  rename(predicted = fit, se = se.fit) %>% 
+  cbind(fitted(best.mod, type = "response") %>% 
+          data.frame() %>% 
+          rename(fitted = 1)) %>% 
+  cbind(., wbird_newdat %>% dplyr::select(study.year)) %>%
+  mutate(uci = predicted + (critval * se),
+         lci = predicted - (critval * se),
+         predicted.resp = best.mod$family$linkinv(predicted),
+         uci.resp = best.mod$family$linkinv(uci),
+         lci.resp = best.mod$family$linkinv(lci),
+         alpha.code = lrt.obj$result$alpha.code)
+}
+
+nosig_year_lrt2 <- all_spp_lrt2[filter(trend_result_summary, sig.year == FALSE)$alpha.code]
+
+
+all_predicted_noyear <- map_df(nosig_year_lrt2, extract_predicted_noyear)
+
+saveRDS(all_predicted_noyear, here("fitted_models/all_predicted_noyear"))
+
+# combine
+all_predicted <- rbind(all_predicted_year2, all_predicted_year, all_predicted_noyear)
+
+saveRDS(all_predicted, here("fitted_models/all_trend_predicted"))
+
+```
+

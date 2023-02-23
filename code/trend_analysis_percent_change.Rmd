@@ -1,0 +1,89 @@
+---
+title: "trend_analysis_percent_change"
+output: word_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+```{r cars}
+
+# calculate percent change ----
+
+  
+ # vertex of quadratic curves
+
+quad_vertex <- all_predicted_year2  %>% 
+  arrange(alpha.code, study.year) %>% 
+  group_by(alpha.code) %>% 
+  mutate(annual.percent.change = -100 * (1 - predicted.resp/lag(predicted.resp))) %>%
+  filter(!is.na(annual.percent.change)) %>% 
+  group_by(alpha.code) %>% 
+  mutate(quad.vertex = ifelse(abs(annual.percent.change) == min(abs(annual.percent.change)), TRUE, FALSE)) %>% 
+  filter(quad.vertex == TRUE) %>% 
+  dplyr::select(alpha.code, quad.vertex.year = study.year, quad.vertex.per.change = annual.percent.change)
+
+before_vertex <- full_join(all_predicted_year2, quad_vertex) %>% 
+  filter(study.year <= quad.vertex.year) %>%
+  group_by(alpha.code) %>% 
+  mutate(trend.segment.bound = case_when(study.year == min(study.year) ~ "start",
+                                         study.year == max(study.year) ~ "end")) %>% 
+  ungroup() %>% 
+  dplyr::select(alpha.code, study.year, contains("resp"), trend.segment.bound) %>% 
+  filter(!is.na(trend.segment.bound)) %>% 
+  mutate(trend.segment = "before.vertex")
+
+
+after_vertex <- full_join(all_predicted_year2, quad_vertex) %>% 
+  filter(study.year >= quad.vertex.year) %>%
+  group_by(alpha.code) %>% 
+  mutate(trend.segment.bound = case_when(study.year == min(study.year) ~ "start",
+                                         study.year == max(study.year) ~ "end")) %>% 
+  ungroup() %>% 
+  dplyr::select(alpha.code, study.year, contains("resp"), trend.segment.bound) %>% 
+  filter(!is.na(trend.segment.bound)) %>% 
+  mutate(trend.segment = "after.vertex")
+
+
+percent_change_wide_quad <- rbind(before_vertex, after_vertex) %>% 
+  pivot_longer(cols = c(study.year, contains("resp"))) %>% 
+  mutate(trend.segment.bound.varb = paste(trend.segment.bound, name, sep = ".")) %>% 
+  pivot_wider(id_cols = c("alpha.code", "trend.segment"), values_from = value, names_from = trend.segment.bound.varb) %>% 
+  mutate(trend.segment.percent.change = -100 * (1 - end.predicted.resp/start.predicted.resp),
+         year.effect = ifelse(trend.segment == "linear", "linear", "quadratic")) %>% 
+  arrange(desc(year.effect), alpha.code, desc(trend.segment))
+
+saveRDS(percent_change_wide_quad, here("data_files/percent_change_wide_quad"))
+
+# --
+
+linear_trends <- all_predicted_year %>%
+  group_by(alpha.code) %>% 
+  mutate(trend.segment.bound = case_when(study.year == min(study.year) ~ "start",
+                                         study.year == max(study.year) ~ "end")) %>% 
+  ungroup() %>% 
+  dplyr::select(alpha.code, study.year, contains("resp"), trend.segment.bound) %>% 
+  filter(!is.na(trend.segment.bound)) %>% 
+  mutate(trend.segment = "linear")
+
+percent_change_wide_lin <- linear_trends %>% 
+  pivot_longer(cols = c(study.year, contains("resp"))) %>% 
+  mutate(trend.segment.bound.varb = paste(trend.segment.bound, name, sep = ".")) %>% 
+  pivot_wider(id_cols = c("alpha.code", "trend.segment"), values_from = value, names_from = trend.segment.bound.varb) %>% 
+  mutate(trend.segment.percent.change = -100 * (1 - end.predicted.resp/start.predicted.resp),
+         year.effect = ifelse(trend.segment == "linear", "linear", "quadratic")) %>% 
+  arrange(desc(year.effect), alpha.code, desc(trend.segment))
+  
+saveRDS(percent_change_wide_lin, here("data_files/percent_change_wide_lin"))
+
+
+
+
+```
+
+
