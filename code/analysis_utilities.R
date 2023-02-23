@@ -146,16 +146,11 @@ parms_informative <- coef(summary(zmodel)) %>%
 return(parms_informative)
 }
 
-parms_inf <- map_df(list("year2_fresh_moci", "year_fresh_moci", "year2_moci", "year_moci", "year2_fresh", "year_fresh", "year2", "year", "fresh_moci", "fresh", "moci"), parm_inf)
-
-parms_inf_named <- parms_inf %>%
-  mutate(parm = ifelse(informative95 == FALSE, sprintf(paste(parm, "^\u2020^", sep = "")), parm)) %>% 
-  group_by(Modnames) %>% 
-  summarise(mod.name.inf = paste(parm, collapse = "_")) %>% 
-  ungroup() %>% 
+parms_inf <- map_df(list("year2_fresh_moci", "year_fresh_moci", "year2_moci", "year_moci", "year2_fresh", "year_fresh", "year2", "year", "fresh_moci", "fresh", "moci"), parm_inf) %>% 
   mutate(alpha.code = zspp)
+
   
-  return(parms_inf_named)
+  return(parms_inf)
 }
 
 
