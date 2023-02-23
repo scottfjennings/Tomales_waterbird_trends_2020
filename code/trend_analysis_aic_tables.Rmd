@@ -1,0 +1,265 @@
+---
+title: "output1_trend_aic_tables"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+library(birdnames)
+library(flextable)
+library(officer)
+
+custom_bird_list <- readRDS("C:/Users/scott.jennings/Documents/Projects/my_R_general/birdnames_support/data/custom_bird_list")
+
+source(here("code/analysis_utilities.R"))
+```
+
+```{r}
+
+# zspp = "BRAC"
+
+#' purty_aic
+#' 
+#' make nice AIC table for each species
+#'
+#' @param zspp 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+purty_aic <- function(zspp) {
+zspp_aic <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][[13]]
+
+
+informative_names <- zspp_aic %>% 
+  select(Modnames, Delta_AICc) %>% 
+  full_join(lm_parm_informative(zspp)) %>%
+  mutate(parm = ifelse(informative95 == FALSE & parm != "poly(study.year, 2)1", sprintf(paste(parm, "^\u2020^", sep = "")), parm)) %>% 
+  group_by(Modnames) %>% 
+  summarise(mod.name.inf = paste(parm, collapse = "_")) %>% 
+  ungroup() %>% 
+  mutate(mod.name.out = ifelse(Modnames == "intercept", "Intercept only", mod.name.inf),
+         mod.name.out = gsub("moci", "MOCI", mod.name.out),
+         mod.name.out = gsub("fresh", "freshwater inflow", mod.name.out),
+         mod.name.out = gsub("poly\\(study.year, 2\\)1", "Year", mod.name.out),
+         mod.name.out = gsub("poly\\(study.year, 2\\)2", "^2^", mod.name.out),
+         mod.name.out = gsub("study.year", "Year", mod.name.out),
+         mod.name.out = gsub("_", " + ", mod.name.out),
+         mod.name.out = gsub(" \\+ \\^2\\^", "^2^", mod.name.out))
+
+aic_out <- full_join(informative_names, zspp_aic) %>% 
+  select(mod.name.out, K, AICc, Delta_AICc, AICcWt, LL) %>% 
+  arrange(Delta_AICc) %>% 
+  mutate(across(c(AICc, Delta_AICc, LL), ~round(., 3)),
+         AICcWt = round(AICcWt, 2))
+
+
+aic_out %>% 
+  flextable() %>% 
+  autofit()%>% 
+  add_header_row(values = translate_bird_names(zspp, "alpha.code", "common.name"), colwidths = 6) %>% 
+    set_header_labels(mod.name.out = "Model structure",
+                    Delta_AICc = "\u0394 AICc",
+                    AICcWt = "AICc wt",
+                    LL = "lnL")%>% 
+  align(j = 2:6, align = "center", part = "all") %>% 
+  fit_to_width(max_width = 7.5)
+}
+
+```
+
+
+
+
+```{r}
+purty_aic("ALL")  
+```
+<br>
+
+```{r}
+purty_aic("AMWI")  
+```
+<br>
+
+```{r}
+purty_aic("BLSC")  
+```
+<br>
+
+```{r}
+purty_aic("BRAC")  
+```
+<br>
+
+```{r}
+purty_aic("BRAN")  
+```
+<br>
+
+```{r}
+purty_aic("BRPE")  
+```
+<br>
+
+```{r}
+purty_aic("BUFF")  
+```
+<br>
+
+```{r}
+purty_aic("CANG")  
+```
+<br>
+
+```{r}
+purty_aic("CLGR")  
+```
+<br>
+
+```{r}
+purty_aic("COGO")  
+```
+<br>
+
+```{r}
+purty_aic("COLO")  
+```
+<br>
+
+```{r}
+purty_aic("COME")  
+```
+<br>
+
+```{r}
+purty_aic("CORM")  
+```
+<br>
+
+```{r}
+purty_aic("DCCO")  
+```
+<br>
+
+```{r}
+purty_aic("EAGR")  
+```
+<br>
+
+```{r}
+purty_aic("EUWI")  
+```
+<br>
+
+```{r}
+purty_aic("FOTE")  
+```
+<br>
+
+```{r}
+purty_aic("GADW")  
+```
+<br>
+
+```{r}
+purty_aic("GWTE")  
+```
+<br>
+
+```{r}
+purty_aic("HEGR")  
+```
+<br>
+
+```{r}
+purty_aic("HOGR")  
+```
+<br>
+
+```{r}
+purty_aic("LOON")  
+```
+<br>
+
+```{r}
+purty_aic("MALL")  
+```
+<br>
+
+```{r}
+purty_aic("NOPI")  
+```
+<br>
+
+```{r}
+purty_aic("PALO")  
+```
+<br>
+
+```{r}
+purty_aic("PBGR")  
+```
+<br>
+
+```{r}
+purty_aic("PCLO")  
+```
+<br>
+
+```{r}
+purty_aic("PECO")  
+```
+<br>
+
+```{r}
+purty_aic("RBME")  
+```
+<br>
+
+```{r}
+purty_aic("RNGR")  
+```
+<br>
+
+```{r}
+purty_aic("RTLO")  
+```
+<br>
+
+```{r}
+purty_aic("RUDU")  
+```
+<br>
+
+```{r}
+purty_aic("SCAUP")  
+```
+<br>
+
+```{r}
+purty_aic("SUSC")  
+```
+<br>
+
+```{r}
+purty_aic("WCGR")  
+```
+<br>
+
+```{r}
+purty_aic("WEGR")  
+```
+<br>
+
+```{r}
+purty_aic("WWSC")  
+```
+
