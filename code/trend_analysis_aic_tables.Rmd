@@ -47,13 +47,10 @@ informative_names <- zspp_aic %>%
   summarise(mod.name.inf = paste(parm, collapse = "_")) %>% 
   ungroup() %>% 
   mutate(mod.name.out = ifelse(Modnames == "intercept", "Intercept only", mod.name.inf),
-         mod.name.out = gsub("moci", "MOCI", mod.name.out),
-         mod.name.out = gsub("fresh", "freshwater inflow", mod.name.out),
-         mod.name.out = gsub("poly\\(study.year, 2\\)1", "Year", mod.name.out),
-         mod.name.out = gsub("poly\\(study.year, 2\\)2", "^2^", mod.name.out),
-         mod.name.out = gsub("study.year", "Year", mod.name.out),
+         mod.name.out = fix_varb_names(mod.name.out),
          mod.name.out = gsub("_", " + ", mod.name.out),
-         mod.name.out = gsub(" \\+ \\^2\\^", "^2^", mod.name.out))
+         mod.name.out = gsub(" \\+ \\^2\\^", "^2^", mod.name.out),
+         mod.name.out = gsub("Year \\+ Year\\^2\\^", "Year^2^", mod.name.out))
 
 aic_out <- full_join(informative_names, zspp_aic) %>% 
   select(mod.name.out, K, AICc, Delta_AICc, AICcWt, LL) %>% 
@@ -140,22 +137,12 @@ purty_aic("COME")
 <br>
 
 ```{r}
-purty_aic("CORM")  
-```
-<br>
-
-```{r}
 purty_aic("DCCO")  
 ```
 <br>
 
 ```{r}
 purty_aic("EAGR")  
-```
-<br>
-
-```{r}
-purty_aic("EUWI")  
 ```
 <br>
 
@@ -175,17 +162,7 @@ purty_aic("GWTE")
 <br>
 
 ```{r}
-purty_aic("HEGR")  
-```
-<br>
-
-```{r}
 purty_aic("HOGR")  
-```
-<br>
-
-```{r}
-purty_aic("LOON")  
 ```
 <br>
 
@@ -206,11 +183,6 @@ purty_aic("PALO")
 
 ```{r}
 purty_aic("PBGR")  
-```
-<br>
-
-```{r}
-purty_aic("PCLO")  
 ```
 <br>
 
@@ -250,16 +222,5 @@ purty_aic("SUSC")
 <br>
 
 ```{r}
-purty_aic("WCGR")  
-```
-<br>
-
-```{r}
 purty_aic("WEGR")  
 ```
-<br>
-
-```{r}
-purty_aic("WWSC")  
-```
-
