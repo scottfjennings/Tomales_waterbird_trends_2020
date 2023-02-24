@@ -71,9 +71,11 @@ spp_annual_full <- spp_annual %>%
 
 # join bird data with predictors
 spp_annual_full_preds <- spp_annual_full %>% 
-  full_join(., readRDS(here("data_files/predictors"))) %>% # predictor variables
-  rename(moci = mean.moci,
-         fresh = annual.freshwater) %>% 
+  full_join(., readRDS(here("data_files/predictors")) %>% 
+              rename(moci = mean.moci,
+                     fresh = annual.freshwater) %>% 
+              mutate(moci = scale(moci, scale = TRUE, center = TRUE)[,1],
+                     fresh = scale(fresh, scale = TRUE, center = TRUE)[,1])) %>% 
   data.frame()
 
 
