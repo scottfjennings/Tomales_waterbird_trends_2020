@@ -1,4 +1,9 @@
 
+
+
+# check diagnostic plots for best model and full model for each species
+
+
 library(tidyverse)
 library(here)
 
