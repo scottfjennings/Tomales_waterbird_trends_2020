@@ -32,66 +32,128 @@ return(df2)
 }
 
 
-
-
-#' best_mod_coefs
-#'
-#' get best model coefficients and 95% ci for a particular species
-#'
-#' @param zspp which species do you want to extract coefficients and CI for
-#'
-#' @return data frame
-#' @export
-#'
-#' @examples
-best_mod_coefs <- function(zspp) {
-zspp_mods <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]]
-
-best_mod_name <- zspp_mods$aic_tab %>% 
-  filter(Delta_AICc == 0)
-
-best_mod <- zspp_mods[[best_mod_name$Modnames]]
-
-coefs <- best_mod$coefficients %>% 
-  data.frame() %>% 
-  rownames_to_column("variable") %>% 
-  rename(coefficient = 2)
-
-ci <- confint(best_mod) %>% 
-  data.frame() %>% 
-  rownames_to_column("variable") %>% 
-  rename(lci = 2, uci = 3)
-
-coef_ci <- full_join(coefs, ci) %>% 
-  mutate(alpha.code = zspp)
-
-return(coef_ci)
-}
-
-
-#' best_mod_dev_explained
+#' get_best_model
 #' 
-#' get deviance explained from the best model for each species
+#' get the best model for a particular species
 #'
 #' @param zspp 
 #'
 #' @return
 #' @export
 #'
-#' @examples
-best_mod_dev_explained <- function(zspp) {
-zspp_mods <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]]
-
+#' @examples brac_best <- get_best_model("BRAC")
+get_best_model <- function(zspp) {
 best_mod_name <- zspp_mods$aic_tab %>% 
   filter(Delta_AICc == 0)
 
 best_mod <- zspp_mods[[best_mod_name$Modnames]]
+}
 
-dev_explained <- data.frame(best.mod.dev.expl = 1 - (best_mod$deviance/best_mod$null.deviance),
-                            alpha.code = zspp)
+
+#' get_competitive_models
+#' 
+#' get model names for the competitive models (Delta_AICc <= 2) for a particular species
+#'
+#' @param zspp 
+#'
+#' @return data frame with columns alpha.code and Modnames
+#' @export
+#'
+#' @examples brac_competitive <- get_competitive_models("BRAC")
+#' 
+#' all_cometitive <- map_df(trend_spp$alpha.code, get_competitive_models)
+get_competitive_models <- function(zspp) {
+comp_mods <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["aic_tab"]] %>% 
+  filter(Delta_AICc <= 2) %>% 
+  select(Modnames) %>% 
+  mutate(alpha.code = zspp)
+}
+
+
+#' mod_coefs
+#'
+#' get coefficients and 95% ci for a particular model for a particular species
+#'
+#' @param zspp which species 
+#' @param zmod which model do you want to extract coefficients and CI for
+#'
+#' @return data frame with row for each variable in zmod. has columns variable, coeficient, lci, uci, Modnames, alpha.code, Delta_AICc
+#' @export
+#'
+#' @examples brac_best_coefs <- mod_coefs("BRAC", "year2")
+#' 
+#' brac_comp_coefs <- map2_df(brac_competitive$alpha.code, brac_competitive$Modnames, mod_coefs)
+#' all_comp_coefs <- map2_df(all_competitive$alpha.code, all_competitive$Modnames, mod_coefs)
+mod_coefs <- function(zspp, zmod) {
+zspp_mod <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][[zmod]]
+
+
+coefs <- zspp_mod$coefficients %>% 
+  data.frame() %>% 
+  rownames_to_column("variable") %>% 
+  rename(coefficient = 2)
+
+ci <- confint(zspp_mod) %>% 
+  data.frame() 
+
+if(zmod == "intercept") {
+  ci <- ci %>%
+  rownames_to_column("zci") %>% 
+    rename(value = 2) %>% 
+    pivot_wider(names_from = zci) %>% 
+  rename(lci = 1, uci = 2) %>% 
+    mutate(variable = "(Intercept)")
+ } else { 
+ci <- ci %>% 
+  rownames_to_column("variable") %>% 
+  rename(lci = 2, uci = 3)
+ }
+
+coef_ci <- full_join(coefs, ci) %>% 
+  mutate(Modnames = zmod,
+         alpha.code = zspp) %>% 
+  left_join(readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["aic_tab"]][c("Modnames", "Delta_AICc")])
+
+return(coef_ci)
+}
+
+
+#' mod_dev_explained
+#' 
+#' get deviance explained from a particular model for a particular species
+#'
+#' @param zspp 
+#' @param zmod 
+#'
+#' @return
+#' @export
+#'
+#' @examples  brac_year_dev <- mod_dev_explained("BRAC", "year")
+mod_dev_explained <- function(zspp, zmod) {
+zspp_mod <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][[zmod]]
+
+dev_explained <- data.frame(dev.expl = 1 - (zspp_mod$deviance/zspp_mod$null.deviance),
+                            alpha.code = zspp,
+                            Modnames = zmod) %>% 
+  mutate(dev.expl = round(dev.expl, 2))
 return(dev_explained)
 }
 
+
+#' spp_aic
+#' 
+#' get aic table for a particular species
+#'
+#' @param zspp 
+#'
+#' @return
+#' @export
+#'
+#' @examples  brac_aic<- get_aic("BRAC")
+get_aic <- function(zspp) {
+zspp_aic <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["aic_tab"]]
+return(zspp_aic)
+}
 
 # 
 # 
@@ -155,4 +217,21 @@ parms_inf <- map_df(list("year2_fresh_moci", "year_fresh_moci", "year2_moci", "y
 
 
 
-
+#' fix_modnames
+#' 
+#' Make model names pretty for output. 
+#'
+#' @param df with at least the column Modnames
+#'
+#' @return df with columns Modnames and mod.name.out
+#' @export
+#'
+#' @examples
+fix_varb_names <- function(zvarb) {
+          zvarb = gsub("intercept|\\(Intercept\\)", "Intercept", zvarb)
+          zvarb = gsub("moci", "MOCI", zvarb)
+         zvarb = gsub("fresh", "freshwater inflow", zvarb)
+         zvarb = gsub("poly\\(study.year, 2\\)1", "Year", zvarb)
+         zvarb = gsub("poly\\(study.year, 2\\)2", "Year^2^", zvarb)
+         zvarb = gsub("study.year", "Year", zvarb)
+}
