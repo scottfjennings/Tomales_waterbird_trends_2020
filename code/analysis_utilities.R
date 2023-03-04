@@ -9,7 +9,6 @@ corm_peli_taxa <- c("Suliformes", "Pelecaniformes")
 fish_eater_taxa <- c("Lophodytes", "Mergus", "Podicipediformes", "Gaviiformes", "Suliformes", "Pelecaniformes")
 
 
-
 #' filter_observed_x_years
 #' 
 #' Filter waterbird data to species seen in at least x_years years. 
@@ -42,11 +41,13 @@ return(df2)
 #' @export
 #'
 #' @examples brac_best <- get_best_model("BRAC")
+#' all_best <- map_df(trend_spp$alpha.code, get_best_model)
 get_best_model <- function(zspp) {
-best_mod_name <- zspp_mods$aic_tab %>% 
-  filter(Delta_AICc == 0)
+best_mod_name <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["aic_tab"]] %>% 
+  filter(Delta_AICc == 0) %>% 
+  select(Modnames) %>% 
+  mutate(alpha.code = zspp)
 
-best_mod <- zspp_mods[[best_mod_name$Modnames]]
 }
 
 
