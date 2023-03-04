@@ -1,0 +1,42 @@
+---
+title: "trend_analysis_percent_change"
+output: word_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+saveRDS(percent_change_wide_quad, here("data_files/percent_change_wide_quad"))
+
+# --
+
+linear_trends <- all_predicted_year %>%
+  group_by(alpha.code) %>% 
+  mutate(trend.segment.bound = case_when(study.year == min(study.year) ~ "start",
+                                         study.year == max(study.year) ~ "end")) %>% 
+  ungroup() %>% 
+  dplyr::select(alpha.code, study.year, contains("resp"), trend.segment.bound) %>% 
+  filter(!is.na(trend.segment.bound)) %>% 
+  mutate(trend.segment = "linear")
+
+percent_change_wide_lin <- linear_trends %>% 
+  pivot_longer(cols = c(study.year, contains("resp"))) %>% 
+  mutate(trend.segment.bound.varb = paste(trend.segment.bound, name, sep = ".")) %>% 
+  pivot_wider(id_cols = c("alpha.code", "trend.segment"), values_from = value, names_from = trend.segment.bound.varb) %>% 
+  mutate(trend.segment.percent.change = -100 * (1 - end.predicted.resp/start.predicted.resp),
+         year.effect = ifelse(trend.segment == "linear", "linear", "quadratic")) %>% 
+  arrange(desc(year.effect), alpha.code, desc(trend.segment))
+  
+saveRDS(percent_change_wide_lin, here("data_files/percent_change_wide_lin"))
+
+
+
+
+```
+
+
