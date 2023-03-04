@@ -3,7 +3,6 @@
 library(tidyverse)
 library(here)
 library(MASS) # for glm.nb
-# library(lmtest) # for lrtest 
 library(AICcmodavg)
 
 trend_spp <- readRDS(here("data_files/trend_spp"))
