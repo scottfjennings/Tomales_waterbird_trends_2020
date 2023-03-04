@@ -1,17 +1,6 @@
----
-title: "output2_trend_best_coefs"
-output: word_document
-date: "`r Sys.Date()`"
----
 
+# get estimated coefficients from best or competitive models for each species
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE,
-                      warning = FALSE,
-                      message = FALSE)
-```
-
-```{r}
 library(tidyverse)
 library(here)
 library(birdnames)
@@ -26,10 +15,6 @@ source(here("code/analysis_utilities.R"))
 
 trend_spp <- readRDS(here("data_files/trend_spp"))
 
-```
-
-
-```{r}
 # get_competitive_models() and mod_coefs() are from analysis_utilities.R
 
 all_competitive <- map_df(trend_spp$alpha.code, get_competitive_models)
@@ -58,10 +43,9 @@ coefs_wide <- full_join(all_comp_coefs_wide, inform_mod_names) %>%
   full_join(all_comp_dev_expl) %>% 
   left_join(all_aic %>% select(alpha.code = species, Modnames, Delta_AICc)) %>% 
   mutate(mod.name.out = gsub("Year \\+ Year\\^2\\^", "Year^2^", mod.name.out),
-         Delta_AICc = round(Delta_AICc, 2)) %>%
+         Delta_AICc = round(Delta_AICc, 2),
+         mod.name.out = replace_na(mod.name.out, "Intercept only")) %>%
   select(alpha.code, mod.name.out, Year, "Year^2^", "freshwater inflow", MOCI, dev.expl, Delta_AICc)
 
-
-```
 
 
