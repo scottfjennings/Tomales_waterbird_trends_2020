@@ -1,40 +1,95 @@
 ---
-title: "trend_analysis_percent_change"
+title: "Waterbird abundance percent change"
 output: word_document
 date: "`r Sys.Date()`"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
 ```
 
 
 
 
-saveRDS(percent_change_wide_quad, here("data_files/percent_change_wide_quad"))
+```{r}
 
-# --
+library(tidyverse)
+library(here)
+library(birdnames)
+library(flextable)
+library(officer)
 
-linear_trends <- all_predicted_year %>%
-  group_by(alpha.code) %>% 
-  mutate(trend.segment.bound = case_when(study.year == min(study.year) ~ "start",
-                                         study.year == max(study.year) ~ "end")) %>% 
-  ungroup() %>% 
-  dplyr::select(alpha.code, study.year, contains("resp"), trend.segment.bound) %>% 
-  filter(!is.na(trend.segment.bound)) %>% 
-  mutate(trend.segment = "linear")
+percent_changes <- readRDS(here("data_files/percent_changes")) %>% 
+  mutate(common.name = factor(common.name, levels = c("All species combined", "Diving benthivore", "Herbivore", "Piscivore", "American Wigeon", "Black Scoter", "Brandt's Cormorant", "Brant", "Brown Pelican", "Bufflehead", "Canada Goose", "Clark's Grebe", "Common Goldeneye", "Common Loon", "Common Merganser", "Double-crested Cormorant", "Eared Grebe", "Forster's Tern", "Gadwall", "Green-winged Teal", "Horned Grebe", "Mallard", "Northern Pintail", "Pacific Loon", "Pelagic Cormorant", "Pied-billed Grebe", "Red-breasted Merganser", "Red-necked Grebe", "Red-throated Loon", "Ruddy Duck", "Scaup", "Surf Scoter", "Western Grebe"))) %>% 
+  arrange(common.name, phase, study.year)
 
-percent_change_wide_lin <- linear_trends %>% 
-  pivot_longer(cols = c(study.year, contains("resp"))) %>% 
-  mutate(trend.segment.bound.varb = paste(trend.segment.bound, name, sep = ".")) %>% 
-  pivot_wider(id_cols = c("alpha.code", "trend.segment"), values_from = value, names_from = trend.segment.bound.varb) %>% 
-  mutate(trend.segment.percent.change = -100 * (1 - end.predicted.resp/start.predicted.resp),
-         year.effect = ifelse(trend.segment == "linear", "linear", "quadratic")) %>% 
-  arrange(desc(year.effect), alpha.code, desc(trend.segment))
+
+
+
+
+```
+
+
+
+
+```{r}
+estimates_wide <- percent_changes %>% 
+  select(common.name, phase, which.year, pred.out) %>%  
+  mutate(which.year = paste(which.year, "estimate", sep = ".")) %>% 
+  pivot_wider(id_cols = c("common.name", "phase"), values_from = pred.out, names_from = which.year)
+
+
+years_wide <- percent_changes %>% 
+  select(common.name, phase, which.year, study.year) %>% 
+  mutate(which.year = paste(which.year, "year", sep = "."),
+         study.year = as.character(study.year)) %>% 
+  pivot_wider(id_cols = c("common.name", "phase"), values_from = study.year, names_from = which.year)
+
+bold_rows <- estimates_wide %>% 
+  select(common.name, phase) %>% 
+  mutate(znum = row_number()) %>% 
+  filter(phase == "overall")
+
+table_lines <- bold_rows %>% 
+  filter(common.name != "All species combined") %>% 
+  mutate(znum = znum - 1)
+
+out_table <- full_join(estimates_wide, years_wide) %>% 
+  full_join(percent_changes %>% filter(!is.na(percent.change)) %>% distinct(common.name, phase, percent.change)) %>% 
+  mutate(common.name = as.character(common.name),
+         common.name = ifelse(phase == "overall", common.name, ""),
+         zbreak = "") %>% 
+  select(common.name, start.year, start.estimate, zbreak, end.year, end.estimate, percent.change)
+
+```
+
+
+
+Table X. Percent change in estimated abundance for 29 waterbird species and all species combined at Tomales Bay, California, 1992-2022. Estimates with 95% Confidence Intervals (%95 CI) are from the best supported model for each species. The abundances and percent change for the entire study period are shown in bold for each species. Where the trend in estimated abundance changed directions during the study (quadratic year effect in best model), the abundances and percent change are shown separately for the increasing and decreasing periods. Note: % changes are the same for the three foraging guilds because those estimates came from the same model (with the additive guild effect).
+```{r}
+flextable(out_table) %>% 
+  add_header_row(values = c("", "start", "", "end", ""), colwidths = c(1, 2, 1, 2, 1)) %>% 
+  set_header_labels(common.name = "Species",
+                    start.year = "year",
+                    start.estimate = "estimate (95% CI)",
+                    zbreak = "",
+                    end.year = "year",
+                    end.estimate = "estimate (95% CI)",
+                    percent.change = "% change")%>% 
+  align(j = 2:6, align = "center", part = "all") %>% 
+  border_remove() %>% 
+  border(i = 2, j = 2:3, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 2, j = 5:6, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 1, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 2, border.bottom = fp_border(color = "black"), part = "header") %>%
+  hline(i = table_lines$znum, part = "body") %>% 
+  border(i = nrow(out_table), border.bottom = fp_border(color = "black"), part = "body") %>%
+  bold(i = bold_rows$znum, bold = TRUE, part = "body") %>% 
+  autofit() %>% 
+  fit_to_width(max_width = 7.5)
   
-saveRDS(percent_change_wide_lin, here("data_files/percent_change_wide_lin"))
-
-
 
 
 ```
