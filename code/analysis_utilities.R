@@ -43,7 +43,7 @@ return(df2)
 #' @examples brac_best <- get_best_model("BRAC")
 #' all_best <- map_df(trend_spp$alpha.code, get_best_model)
 get_best_model <- function(zspp) {
-best_mod_name <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["aic_tab"]] %>% 
+best_mod_name <- readRDS(here("fitted_models/final_models"))[zspp][[1]][[1]][["aic_tab"]] %>% 
   filter(Delta_AICc == 0) %>% 
   select(Modnames) %>% 
   mutate(alpha.code = zspp)
@@ -64,7 +64,7 @@ best_mod_name <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["a
 #' 
 #' all_cometitive <- map_df(trend_spp$alpha.code, get_competitive_models)
 get_competitive_models <- function(zspp) {
-comp_mods <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["aic_tab"]] %>% 
+comp_mods <- readRDS(here("fitted_models/final_models"))[zspp][[1]][[1]][["aic_tab"]] %>% 
   filter(Delta_AICc <= 2) %>% 
   select(Modnames) %>% 
   mutate(alpha.code = zspp)
@@ -86,7 +86,7 @@ comp_mods <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["aic_t
 #' brac_comp_coefs <- map2_df(brac_competitive$alpha.code, brac_competitive$Modnames, mod_coefs)
 #' all_comp_coefs <- map2_df(all_competitive$alpha.code, all_competitive$Modnames, mod_coefs)
 mod_coefs <- function(zspp, zmod) {
-zspp_mod <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][[zmod]]
+zspp_mod <- readRDS(here("fitted_models/final_models"))[zspp][[1]][[1]][[zmod]]
 
 
 coefs <- zspp_mod$coefficients %>% 
@@ -113,7 +113,7 @@ ci <- ci %>%
 coef_ci <- full_join(coefs, ci) %>% 
   mutate(Modnames = zmod,
          alpha.code = zspp) %>% 
-  left_join(readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["aic_tab"]][c("Modnames", "Delta_AICc")])
+  left_join(readRDS(here("fitted_models/final_models"))[zspp][[1]][[1]][["aic_tab"]][c("Modnames", "Delta_AICc")])
 
 return(coef_ci)
 }
@@ -131,7 +131,7 @@ return(coef_ci)
 #'
 #' @examples  brac_year_dev <- mod_dev_explained("BRAC", "year")
 mod_dev_explained <- function(zspp, zmod) {
-zspp_mod <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][[zmod]]
+zspp_mod <- readRDS(here("fitted_models/final_models"))[zspp][[1]][[1]][[zmod]]
 
 dev_explained <- data.frame(dev.expl = 1 - (zspp_mod$deviance/zspp_mod$null.deviance),
                             alpha.code = zspp,
@@ -152,7 +152,7 @@ return(dev_explained)
 #'
 #' @examples  brac_aic<- get_aic("BRAC")
 get_aic <- function(zspp) {
-zspp_aic <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["aic_tab"]]
+zspp_aic <- readRDS(here("fitted_models/final_models"))[zspp][[1]][[1]][["aic_tab"]]
 return(zspp_aic)
 }
 
@@ -171,48 +171,54 @@ return(zspp_aic)
 #' @export
 #'
 #' @examples brac_inf <- lm_parm_informative("BRAC")
-lm_parm_informative <- function(zspp) {
+lm_parm_informative <- function(zspp, mod_obj) {
 
-zspp_mods <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][1:12]
+# mod_obj = "final_models"  
+  
+zspp_mod_obj <- readRDS(here(paste("fitted_models/", mod_obj, sep = "")))[zspp][[1]][[1]]
+
+znames <- names(zspp_mod_obj)[!grepl("aic_tab|intercept", names(zspp_mod_obj))]
+
+zspp_mods <- zspp_mod_obj[znames]
 
 
-parm_inf <- function(zmod) {
+parm_inf <- function(zmod.name) {
 
-  zmod <- zspp_mods[zmod]
-  zmodel.name <- zmod %>% names()
-  zmodel <- zmod[[1]]
+  zmod <- zspp_mods[[zmod.name]]
+  #zmodel.name <- zmod %>% names()
+  #zmodel <- zmod[[1]]
 
-  zmodel_ci95 <- confint(zmodel)%>% 
+  zmodel_ci <- confint(zmod) %>% 
                 data.frame() %>% 
                 rownames_to_column("parm") %>% 
     rename(lcl95 = X2.5..,
            ucl95 = X97.5..)
   
-  zmodel_ci85 <- confint(zmodel, level = 0.85)%>% 
-                data.frame() %>% 
-                rownames_to_column("parm") %>% 
-    rename(lcl85 = X7.5..,
-           ucl85 = X92.5..)
+  #zmodel_ci85 <- confint(zmodel, level = 0.85)%>% 
+  #              data.frame() %>% 
+  #              rownames_to_column("parm") %>% 
+  #  rename(lcl85 = X7.5..,
+  #         ucl85 = X92.5..)
   
-  zmodel_ci <- full_join(zmodel_ci95, zmodel_ci85)
+  #zmodel_ci <- full_join(zmodel_ci95, zmodel_ci85)
   
-parms_informative <- coef(summary(zmodel)) %>% 
+parms_informative <- coef(summary(zmod)) %>% 
   data.frame() %>% 
   rownames_to_column("parm") %>% 
   filter(!grepl("ntercept", parm)) %>% 
     select(parm, Estimate) %>% 
     left_join(., zmodel_ci) %>% 
     mutate(informative95 = ifelse((lcl95 < 0 & ucl95 < 0) | (lcl95 > 0 & ucl95 > 0), TRUE, FALSE),
-           informative85 = ifelse((lcl85 < 0 & ucl85 < 0) | (lcl85 > 0 & ucl85 > 0), TRUE, FALSE),
-           Modnames = zmodel.name)
+           #informative85 = ifelse((lcl85 < 0 & ucl85 < 0) | (lcl85 > 0 & ucl85 > 0), TRUE, FALSE),
+           Modnames = zmod.name)
 
 return(parms_informative)
 }
 
-parms_inf <- map_df(list("year2_fresh_moci", "year_fresh_moci", "year2_moci", "year_moci", "year2_fresh", "year_fresh", "year2", "year", "fresh_moci", "fresh", "moci"), parm_inf) %>% 
+parms_inf <- map_df(names(zspp_mods), parm_inf) %>% 
   mutate(alpha.code = zspp)
 
-  
+  #list("year2_fresh_moci", "year_fresh_moci", "year2_moci", "year_moci", "year2_fresh", "year_fresh", "year2", "year", "fresh_moci", "fresh", "moci")
   return(parms_inf)
 }
 
