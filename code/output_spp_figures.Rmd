@@ -1,0 +1,214 @@
+---
+title: "Waterbird trend best model plots"
+output: word_document
+date: "`r Sys.Date()`"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+
+
+```{r}
+
+library(tidyverse)
+library(here)
+library(knitr)
+
+zheight = 4
+```
+
+
+
+
+Figures X. Trends in abundance for 29 waterbird species and all species combined at Tomales Bay, California, 1992-2022. For each species' plot, the line and shaded ribbon show the estimated abundance and 95% Confidence Interval from the best supported model, and the points indicate the raw data the models were fitted to. The estimates were generated at the mean values for MOCI and freshwater inflow, and actual values of the restoration dummy variable, where those variables were included in the best model. Where the fitted line is red indicates when the annual change in abundance was ≤ -2% per year for at least 10 consecutive years, which meets the IUCN criteria for listing as Near Threatened or higher. For 2 species, estimated abundances are shown for 2 models. In the case of Black Scoter, the best model (year2) gave estimates for the early years that seem unrealistically high, whereas the second best model (year; delta aicc = 0.3) seemed to give more reasonable estimates relative to the raw data. For Green-winged Teal the best model (Year + Restoration) estimates seem to be driven by a single particularly large value in 2011; 2 competitive models (Year, Δ AICc = 1.043; and Year + MOCI + Restoration, Δ AICc = 1.649) had mostly uninformative parameters (only Year in Year + MOCI + Restoration informative), so we included estimates for the next best model, the Intercept only model, which had Δ AICc = 2.152. 
+
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = 4}
+include_graphics(here("figures_output/ALL.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = 4}
+include_graphics(here("figures_output/AMWI.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+#include_graphics(here("figures_output/BLSC.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/BLSC_2mods.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/BRAC.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/BRAN.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/BRPE.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/BUFF.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/CANG.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/CLGR.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/COGO.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/COLO.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/COME.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/DCCO.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/EAGR.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/FOTE.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/GADW.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/GWTE_2mods.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/HOGR.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/MALL.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/NOPI.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/PALO.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/PBGR.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/PECO.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/RBME.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/RNGR.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/RTLO.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/RUDU.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/SCAUP.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/SUSC.png"))
+```
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = zheight}
+include_graphics(here("figures_output/WEGR.png"))
+```
+
+<br>  
+
+Figure XX. Changes in the estimated total number of birds in each of three foraging guilds at Tomales Bay, California, 1992-2022. For each guild the line represents the estimated abundance each year for the sum of all birds in that guild. The estimates were generated at the mean values for MOCI and freshwater inflow.
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = 4}
+include_graphics(here("figures_output/guild_trends.png"))
+```
+
+<br>  
+
+Figure XXX. Changes in the estimated total number of birds in each of four foraging guilds at Tomales Bay, California, 1992-2022. For each species the estimated abundance each year was scaled and centered so species with different abundances could be viewed together. Estimates for each species are from the best supported model (lowest AICc value) except for 2 species. For Black Scoter, the best model (year2) gave estimates for the early years that seem unrealistically high, whereas the second best model (year; delta aicc = 0.3) seemed to give more reasonable estimates relative to the raw data. For Green-winged Teal the best model (Year + Restoration) estimates seem to be driven by a single particularly large value in 2011; 2 competitive models (Year, Δ AICc = 1.043; and Year + MOCI + Restoration, Δ AICc = 1.649) had mostly uninformative parameters (only Year in Year + MOCI + Restoration informative), so we included estimates for the next best model, the Intercept only model, which had Δ AICc = 2.152. 
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = 4}
+include_graphics(here("figures_output/scaled_predictions_guild.png"))
+```
+
+
+<br>  
+
+Figure XXXX. Coefficient values for environmental predictor variables in models to estimate total number of birds in each of four foraging guilds at Tomales Bay, California, 1992-2022. Coefficients for each species are from the best supported model (lowest AICc value).
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = 4}
+include_graphics(here("figures_output/moci_fresh_mean_coefs.png"))
+```
+
