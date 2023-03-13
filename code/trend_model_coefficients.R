@@ -21,6 +21,8 @@ all_competitive <- map_df(trend_spp$alpha.code, get_competitive_models)
 
 all_comp_coefs <- map2_df(all_competitive$alpha.code, all_competitive$Modnames, mod_coefs)
 
+saveRDS(all_comp_coefs, here("data_files/all_competitive_coefs"))
+
 all_comp_dev_expl <- map2_df(all_competitive$alpha.code, all_competitive$Modnames, mod_dev_explained)
 
 all_aic <- map_df(trend_spp$alpha.code, get_aic)
@@ -47,5 +49,11 @@ coefs_wide <- full_join(all_comp_coefs_wide, inform_mod_names) %>%
          mod.name.out = replace_na(mod.name.out, "Intercept only")) %>%
   select(alpha.code, mod.name.out, Year, "Year^2^", "freshwater inflow", MOCI, dev.expl, Delta_AICc)
 
+
+
+saveRDS(coefs_wide, here("data_files/coefs_wide"))
+
+
+coefs_wide <- readRDS(here("data_files/coefs_wide"))
 
 
