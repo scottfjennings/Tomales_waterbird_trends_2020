@@ -21,23 +21,31 @@ trend_spp <- readRDS(here("data_files/trend_spp"))
 
 mod_predictions_link <- function(zspp, zmod) {
   
-zspp_mod <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][[zmod]]
+zspp_mod <- readRDS(here("fitted_models/final_models"))[zspp][[1]][[1]][[zmod]]
 
 znewdat <- data.frame(study.year = seq(1992, 2022),
                       moci = 0,
-                      fresh = 0)
+                      fresh = 0)%>% 
+  mutate(giac = ifelse(study.year < 2009, 0, 1))
 
 zpred <- predict(zspp_mod, znewdat, type = "link", se = TRUE) %>% 
   bind_cols(znewdat) %>% 
   mutate(alpha.code = zspp,
          Modnames = zmod) %>% 
   select(alpha.code, Modnames, study.year, fit, se.fit) 
+
 }
 
 all_best <- map_df(trend_spp$alpha.code, get_best_model) %>%
-  bind_rows(data.frame(alpha.code = "BLSC", Modnames = "year")) # best BLSC model (year2) gives estimates for the early years that seem unrealistically high, second best model (year; delta aicc = 0.3) seems to give more reasonable estimates relative to the raw data. adding the year model to all_best here to extract estimates for both models
+  bind_rows(data.frame(alpha.code = "BLSC", Modnames = "year")) %>%
+  bind_rows(data.frame(alpha.code = "GWTE", Modnames = "intercept")) 
+
+# best BLSC model (year2) gives estimates for the early years that seem unrealistically high, second best model (year; delta aicc = 0.3) seems to give more reasonable estimates relative to the raw data. adding the year model to all_best here to extract estimates for both models
+# GWTE intercept only has dAICc = 2.152. 2 competitive models year and year_moci_giac have mostly uninformative parms (only year in year_moci_giac not uninformative). best model estimates seem kinda iffy so including intercept
 
 all_best_preds <- map2_df(all_best$alpha.code, all_best$Modnames, mod_predictions_link)
+
+
 
 all_best_preds_response <- all_best_preds %>%
   data.frame() %>% 
