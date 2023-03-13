@@ -1,6 +1,7 @@
 ---
-title: "output1_trend_aic_tables"
+title: "Waterbird model selection tables"
 output: word_document
+date: "`r Sys.Date()`"
 ---
 
 ```{r setup, include=FALSE}
@@ -19,11 +20,15 @@ library(officer)
 custom_bird_list <- readRDS("C:/Users/scott.jennings/Documents/Projects/my_R_general/birdnames_support/data/custom_bird_list")
 
 source(here("code/analysis_utilities.R"))
+
+trend_spp <- readRDS(here("data_files/trend_spp"))
+
+
 ```
 
 ```{r}
 
-# zspp = "BRAC"
+# zspp = "MALL"
 
 #' purty_aic
 #' 
@@ -36,12 +41,12 @@ source(here("code/analysis_utilities.R"))
 #'
 #' @examples
 purty_aic <- function(zspp) {
-zspp_aic <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][[13]]
+zspp_aic <- readRDS(here("fitted_models/final_models"))[zspp][[1]][[1]][["aic_tab"]]
 
 
 informative_names <- zspp_aic %>% 
-  select(Modnames, Delta_AICc) %>% 
-  full_join(lm_parm_informative(zspp)) %>%
+  dplyr::select(Modnames, Delta_AICc) %>% 
+  full_join(lm_parm_informative(zspp, "final_models")) %>%
   mutate(parm = ifelse(informative95 == FALSE & parm != "poly(study.year, 2)1", sprintf(paste(parm, "^\u2020^", sep = "")), parm)) %>% 
   group_by(Modnames) %>% 
   summarise(mod.name.inf = paste(parm, collapse = "_")) %>% 
@@ -50,7 +55,8 @@ informative_names <- zspp_aic %>%
          mod.name.out = fix_varb_names(mod.name.out),
          mod.name.out = gsub("_", " + ", mod.name.out),
          mod.name.out = gsub(" \\+ \\^2\\^", "^2^", mod.name.out),
-         mod.name.out = gsub("Year \\+ Year\\^2\\^", "Year^2^", mod.name.out))
+         mod.name.out = gsub("Year \\+ Year\\^2\\^", "Year^2^", mod.name.out),
+         mod.name.out = gsub("giac", "Restoration", mod.name.out))
 
 aic_out <- full_join(informative_names, zspp_aic) %>% 
   select(mod.name.out, K, AICc, Delta_AICc, AICcWt, LL) %>% 
@@ -62,7 +68,7 @@ aic_out <- full_join(informative_names, zspp_aic) %>%
 aic_out %>% 
   flextable() %>% 
   autofit()%>% 
-  add_header_row(values = translate_bird_names(zspp, "alpha.code", "common.name"), colwidths = 6) %>% 
+  add_header_row(values = ifelse(zspp == "ALL", "All species combined", translate_bird_names(zspp, "alpha.code", "common.name")), colwidths = 6) %>% 
     set_header_labels(mod.name.out = "Model structure",
                     Delta_AICc = "\u0394 AICc",
                     AICcWt = "AICc wt",
@@ -73,8 +79,7 @@ aic_out %>%
 
 ```
 
-
-
+Supplementary tables xx. Model selection tables for changes in abundance of 29 waterbird species and all species combined at Tomales Bay, California, 1992-2022. Shown for each model are the model structure, number of parameters (K), Akaike Information Criterion value corrected for small sample size (AICc), difference in AICc value between lowest AICc value and that of the current model (Δ AICc), the AICc model weight (AICc wt), and the logarithm of the estimated maximum likelihood (lnL). The candidate model set was the same for all except 8 species (American Wigeon, Bufflehead, Canada Goose, Gadwall, Green-winged Teal, Mallard, Northern Pintail, and Pied-billed Grebe). For these 8 species, we first fitted the base candidat set used for all species, then for each competitive model (Δ AICc ≤ 2) we added the effect of a large wetland restoration project, and recalculated Δ AICc and AICc wt for all models. Although model selection proceeded in two steps for these species, we show models from both steps together in the same table so that the restoration models can be compared to all in the original candidate set.
 
 ```{r}
 purty_aic("ALL")  
