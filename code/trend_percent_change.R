@@ -18,7 +18,12 @@ options(scipen = 999)
 all_best_preds_response <- readRDS(here("data_files/all_best_preds_response")) %>% 
   mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
          common.name = ifelse(common.name == "all", "All species combined", common.name)) %>% 
-  filter(!(alpha.code == "BLSC" & Modnames == "year2"))
+  filter(!(alpha.code == "BLSC" & Modnames == "year2"),
+         !(alpha.code == "GWTE"  & Modnames == "year_giac")) %>% 
+  bind_rows(readRDS(here("data_files/guild_preds_response")) %>% 
+              rename(common.name = guild) %>% 
+              dplyr::select(-residual.scale, -moci, -fresh) %>% 
+              mutate(Modnames = "year2_guild_fresh_moci"))
 
 
 # calculate percent change ----
@@ -27,9 +32,9 @@ all_best_preds_response <- readRDS(here("data_files/all_best_preds_response")) %
  # vertex of quadratic curves
 
 quad_vertex <- all_best_preds_response  %>% 
-  #filter(grepl("year2", Modnames)) %>% 
-  arrange(alpha.code, study.year) %>% 
-  group_by(alpha.code) %>% 
+  filter(grepl("year2", Modnames)) %>% 
+  arrange(common.name, study.year) %>% 
+  group_by(common.name) %>% 
   mutate(annual.percent.change.sign = ifelse(1 - predicted/lag(predicted) < 0, "negative", "positive")) %>%
   mutate(quad.vertex = ifelse(annual.percent.change.sign == lead(annual.percent.change.sign), FALSE, TRUE))
 
@@ -39,53 +44,57 @@ quad_vertex %>%
   ggplot() +
   geom_line(aes(x = study.year, y = predicted)) +
   geom_point(aes(x = study.year, y = predicted, color = quad.vertex)) +
-  facet_wrap(~alpha.code, scales = "free_y")
+  facet_wrap(~common.name, scales = "free_y")
 
 
 
-percent_change <- quad_vertex %>% 
+change_quad_phase1 <- quad_vertex %>% 
   filter(quad.vertex == TRUE) %>% 
-  dplyr::select(alpha.code, quad.vertex.year = study.year) %>% 
-  full_join(all_best_preds_response) %>% 
+  dplyr::select(common.name, quad.vertex.year = study.year) %>% 
+  left_join(all_best_preds_response) %>% 
   group_by(alpha.code) %>% 
-  filter(study.year == min(study.year) | study.year == max(study.year) | study.year == quad.vertex.year) %>% 
-  arrange(alpha.code, study.year) %>% 
-  mutate(percent.change = 100 * ((predicted/lag(predicted))-1)) %>% 
+  filter(study.year == min(study.year)| study.year == quad.vertex.year) %>% 
+  mutate(phase = "1")
+         
+
+
+
+change_quad_phase2 <- quad_vertex %>% 
+  filter(quad.vertex == TRUE) %>% 
+  dplyr::select(common.name, quad.vertex.year = study.year) %>% 
+  left_join(all_best_preds_response) %>% 
+  group_by(alpha.code) %>% 
+  filter(study.year == max(study.year) | study.year == quad.vertex.year) %>% 
+  mutate(phase = "2")
+
+
+change_overall <- all_best_preds_response %>% 
+  group_by(common.name) %>% 
+  filter(study.year == min(study.year) | study.year == max(study.year)) %>% 
+  mutate(phase = "overall")
+
+
+
+percent_changes <- bind_rows(change_quad_phase1, change_quad_phase2, change_overall) %>% 
+  mutate(phase = factor(phase, levels = c("overall", "1", "2"))) %>% 
+  arrange(common.name, phase, study.year) %>% 
+  group_by(common.name, phase) %>% 
+  mutate(percent.change = 100 * ((predicted/lag(predicted))-1),
+         which.year = ifelse(study.year == min(study.year), "start", "end")) %>% 
   ungroup() %>% 
   mutate(across(c(predicted, lci, uci), ~floor(.)),
-         pred.out = paste(predicted, " (", lci, ", ", uci, ")", sep = ""))
-         
-         
+         pred.out = paste(predicted, " (", lci, ", ", uci, ")", sep = ""),
+         percent.change = round(percent.change, 1))
 
+saveRDS(percent_changes, here("data_files/percent_changes"))
 
+                  
 
-
-before_vertex <- full_join(all_predicted_year2, quad_vertex) %>% 
-  filter(study.year <= quad.vertex.year) %>%
-  group_by(alpha.code) %>% 
-  mutate(trend.segment.bound = case_when(study.year == min(study.year) ~ "start",
-                                         study.year == max(study.year) ~ "end")) %>% 
-  ungroup() %>% 
-  dplyr::select(alpha.code, study.year, contains("resp"), trend.segment.bound) %>% 
-  filter(!is.na(trend.segment.bound)) %>% 
-  mutate(trend.segment = "before.vertex")
-
-
-after_vertex <- full_join(all_predicted_year2, quad_vertex) %>% 
-  filter(study.year >= quad.vertex.year) %>%
-  group_by(alpha.code) %>% 
-  mutate(trend.segment.bound = case_when(study.year == min(study.year) ~ "start",
-                                         study.year == max(study.year) ~ "end")) %>% 
-  ungroup() %>% 
-  dplyr::select(alpha.code, study.year, contains("resp"), trend.segment.bound) %>% 
-  filter(!is.na(trend.segment.bound)) %>% 
-  mutate(trend.segment = "after.vertex")
-
-
-percent_change_wide_quad <- rbind(before_vertex, after_vertex) %>% 
-  pivot_longer(cols = c(study.year, contains("resp"))) %>% 
-  mutate(trend.segment.bound.varb = paste(trend.segment.bound, name, sep = ".")) %>% 
-  pivot_wider(id_cols = c("alpha.code", "trend.segment"), values_from = value, names_from = trend.segment.bound.varb) %>% 
-  mutate(trend.segment.percent.change = -100 * (1 - end.predicted.resp/start.predicted.resp),
-         year.effect = ifelse(trend.segment == "linear", "linear", "quadratic")) %>% 
-  arrange(desc(year.effect), alpha.code, desc(trend.segment))
+  
+  
+  
+  
+  
+  
+  
+  
