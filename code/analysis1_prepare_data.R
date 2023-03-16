@@ -30,15 +30,18 @@ exclude_dates <- as.Date(c("2011-12-17", # Bivalve count incomplete; ponds only
                    "1989-12-16" # funky protocol. No precounts. Should probably exclude from analysis 
                    ))
 
-
+# add study year, combine groupd spp for analysis, and recalculate the total number of birds for each species or species group each day
 spp_day_total <- readRDS("C:/Users/scott.jennings/Documents/Projects/core_monitoring_research/water_birds/ACR_waterbird_data_management/data_files/working_rds/new_neg_machine_bay_total") %>% 
   wbird_add_study_day() %>% # from waterbird_utility_functions.R
   filter(!date %in% exclude_dates, study.year > 1991) %>% 
   bird_taxa_filter(wbird_keep_taxa) %>% 
   mutate(alpha.code = ifelse(alpha.code %in% c("GRSC", "LESC"), "SCAUP", alpha.code),
-         alpha.code = ifelse(alpha.code %in% c("WEGR", "CLGR"), "WCGR", alpha.code))
+         alpha.code = ifelse(alpha.code %in% c("WEGR", "CLGR"), "WCGR", alpha.code)) %>% 
+  group_by(study.year, date, alpha.code) %>% 
+  summarise(bay.total = sum(bay.total)) %>% 
+  ungroup()
   
-
+# calculate the 75th percentile of the individual day totals for each species/species group each year
 spp_annual <- spp_day_total %>%
   group_by(study.year, date) %>% 
   summarise(bay.total = sum(bay.total)) %>% 
@@ -47,8 +50,10 @@ spp_annual <- spp_day_total %>%
   group_by(study.year, alpha.code) %>% 
   summarise(p75.abund = floor(quantile(bay.total, 0.75)))
 
+# there aren't many HEGR left so not analyzing them separately
 filter(spp_annual, alpha.code == "HEGR") %>% view()
 
+# filter to just those species/species groups seen at least 20 years and with the median 75th percentile at least 5 (models don't fit well for very low abundance species)
 trend_spp <- spp_annual %>% 
   group_by(alpha.code) %>% 
   summarise(num.years.detected = n(),
@@ -61,7 +66,7 @@ trend_spp <- spp_annual %>%
 saveRDS(trend_spp, here("data_files/trend_spp"))
 
 
-# fill in 0 for years spp not detected
+# fill in 0 for years when spp not detected
 spp_annual_full <- spp_annual %>%
   filter(alpha.code %in% trend_spp$alpha.code) %>% 
   pivot_wider(id_cols = alpha.code, names_from = study.year, values_from = p75.abund) %>% 
@@ -79,7 +84,7 @@ spp_annual_full_preds <- spp_annual_full %>%
                      fresh = scale(fresh, scale = TRUE, center = TRUE)[,1])) %>% 
   data.frame()
 
-
+# check correlation of predictors
 readRDS(here("data_files/predictors")) %>% 
   dplyr::select("fresh" = annual.freshwater, "moci" = mean.moci) %>% 
   cor()
