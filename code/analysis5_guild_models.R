@@ -4,7 +4,6 @@ library(tidyverse)
 library(here)
 library(MASS) # for glm.nb
 library(AICcmodavg)
-library(lmtest) # for lrtest
 library(birdnames)
 
 custom_bird_list <- readRDS("C:/Users/scott.jennings/Documents/Projects/my_R_general/birdnames_support/data/custom_bird_list")
@@ -40,17 +39,29 @@ year2_fresh_moci <- glm.nb(guild.total ~ poly(study.year, 2) + fresh + moci, dat
 
 year2.guild_fresh_moci <- glm.nb(guild.total ~ poly(study.year, 2) * guild + fresh + moci, data = abund_guilds)
 year2_guild_fresh_moci <- glm.nb(guild.total ~ poly(study.year, 2) + guild + fresh + moci, data = abund_guilds)
+year2_guild.fresh_moci <- glm.nb(guild.total ~ poly(study.year, 2) + guild * fresh + moci, data = abund_guilds)
+year2_fresh_guild.moci <- glm.nb(guild.total ~ poly(study.year, 2) + fresh + guild * moci, data = abund_guilds)
 
-guild_aic <- aictab(list(year2_fresh_moci, year2.guild_fresh_moci, year2_guild_fresh_moci), 
-                    c("year2_fresh_moci", "year2.guild_fresh_moci", "year2_guild_fresh_moci")) %>% 
-  data.frame()
+guild_mods <- list(year2_fresh_moci, year2.guild_fresh_moci, year2_guild_fresh_moci, year2_guild.fresh_moci, year2_fresh_guild.moci)
+
+names(guild_mods) <- c("year2_fresh_moci", "year2.guild_fresh_moci", "year2_guild_fresh_moci", "year2_guild.fresh_moci", "year2_fresh_guild.moci")
+
+guild_aic <- aictab(list(year2_fresh_moci, year2.guild_fresh_moci, year2_guild_fresh_moci, year2_guild.fresh_moci, year2_fresh_guild.moci), 
+                    c("year2_fresh_moci", "year2.guild_fresh_moci", "year2_guild_fresh_moci", "year2_guild.fresh_moci", "year2_fresh_guild.moci")) %>% 
+  data.frame() %>% 
+  mutate(species = "guild")
+
+guild_mods$aic_tab = guild_aic
 
 
-lrtest(year2.guild_fresh_moci, year2_guild_fresh_moci)
-lrtest(year2_guild_fresh_moci, year2_fresh_moci)
+final_models <- readRDS(here("fitted_models/final_models"))
+
+final_models$guild = guild_mods
+
+saveRDS(final_models, here("fitted_models/final_models"))
 
 
-summary(year2.guild_fresh_moci)
+summary(year2_guild_fresh_moci)
 
 
 guild_newdat <- expand.grid(study.year = distinct(abund_guilds, study.year)$study.year,

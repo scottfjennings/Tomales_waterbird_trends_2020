@@ -170,7 +170,7 @@ blsc_2mods_plot
 
 
 predictor_plot <- readRDS(here("data_files/predictors")) %>%
-  select(-giac) %>% 
+  dplyr::select(-giac) %>% 
   pivot_longer(cols = c(annual.freshwater, mean.moci), names_to = "predictor", values_to = "predictor.value") %>% 
   mutate(predictor = ifelse(predictor == "mean.moci", "MOCI", "freshwater inflow")) %>% 
   ggplot() +
