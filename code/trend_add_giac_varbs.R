@@ -20,11 +20,11 @@ zspp_annual <- readRDS(here("data_files/spp_annual_full_preds")) %>%
   filter(alpha.code == zspp) %>% 
   full_join(giac_varbs)
   
-  zspp_mods <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]] 
+  zspp_mods <- readRDS(here("fitted_models/all_spp_mods"))[[zspp]]
   
   zspp_mods[["aic_tab"]] <- NULL
   
-  competitive <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["aic_tab"]] %>% 
+  competitive <- readRDS(here("fitted_models/all_spp_mods"))[[zspp]][["aic_tab"]] %>% 
     filter(Delta_AICc <= 2, Modnames != "intercept") %>% 
     dplyr::select(Modnames)
   
@@ -43,7 +43,7 @@ wbird_aic <- aictab(zspp_mods_new, names(zspp_mods_new)) %>%
 
 zspp_mods_new$aic_tab <- wbird_aic
 
-zspp_mods_new$aic_tab_no_giac <- readRDS(here("fitted_models/all_spp_mods"))[zspp][[1]][[1]][["aic_tab"]]
+zspp_mods_new$aic_tab_no_giac <- readRDS(here("fitted_models/all_spp_mods"))[[zspp]][["aic_tab"]]
 
 return(zspp_mods_new)
 
@@ -52,6 +52,8 @@ return(zspp_mods_new)
 
 giac_spp_mods <- map(giac_spp, quietly(add_giac_mods))
 
+
+giac_spp_mods <- map(giac_spp, add_giac_mods)
 names(giac_spp_mods) <- giac_spp
 
 
