@@ -35,7 +35,8 @@ spp_day_total <- readRDS("C:/Users/scott.jennings/Documents/Projects/core_monito
   wbird_add_study_day() %>% # from waterbird_utility_functions.R
   filter(!date %in% exclude_dates, study.year > 1991) %>% 
   bird_taxa_filter(wbird_keep_taxa) %>% 
-  mutate(alpha.code = ifelse(alpha.code %in% c("GRSC", "LESC"), "SCAUP", alpha.code))
+  mutate(alpha.code = ifelse(alpha.code %in% c("GRSC", "LESC"), "SCAUP", alpha.code),
+         alpha.code = ifelse(alpha.code %in% c("WEGR", "CLGR"), "WCGR", alpha.code))
   
 
 spp_annual <- spp_day_total %>%
