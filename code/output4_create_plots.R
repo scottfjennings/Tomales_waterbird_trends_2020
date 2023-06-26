@@ -2,12 +2,11 @@
 
 
 library(tidyverse)
+library(cowplot)
 library(here)
 library(birdnames)
 
-options(scipen = 999)
-
-custom_bird_list <- readRDS("C:/Users/scott.jennings/Documents/Projects/my_R_general/birdnames_support/data/custom_bird_list")
+custom_bird_list <- readRDS("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/my_R_general/birdnames_support/data/custom_bird_list") 
 
 source(here("code/analysis_utilities.R"))
 
@@ -15,77 +14,130 @@ trend_spp <- readRDS(here("data_files/trend_spp"))
 
 year_breaks <- seq(1990, 2025, by = 5)
 
-# plot model predictions for each species ----
+# plot model predictions for best model or multiple models for each species ----
 
-all_best_preds_response <- readRDS(here("data_files/all_best_preds_response")) %>% 
-# all_best_preds_response <- all_best_preds_response %>% 
-  mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
-         common.name = ifelse(common.name == "all", "All species combined", common.name)) %>% 
-  full_join(readRDS(here("data_files/spp_annual_full_preds")) %>% select(alpha.code, study.year, p75.abund))
-
-# annual percent change
-
-annual_per_change <- all_best_preds_response %>% 
-  filter(grepl("year", Modnames)) %>% 
-  arrange(common.name, Modnames, study.year) %>% 
-  group_by(common.name, Modnames) %>% 
-  mutate(annual.per.change = 100 * ((predicted/lag(predicted))-1),
-         iucn.threat = ifelse(annual.per.change <= -2, TRUE, FALSE)) %>% 
-  filter(iucn.threat == TRUE) %>% 
-  mutate(decline.dur = n()) %>% 
-  filter(decline.dur >= 10)
+# spp_mod_plotter lives in utilities
+# these species only need best model plotted and don't need legend adjustments
+map(c("AMCO", "BRAC", "BRPE", "COGO", "DCCO", "FOTE", "GADW", "HOGR", "MALL", "PALO", "RTLO", "SCAUP", "SUSC", "WCGR"), spp_mod_plotter)
 
 
-#' spp_plotter
-#' 
-#' Plot estimates and raw data for each model in all_best_preds_response for each species, but only does year2 model for BLSC
-#'
-#' @param zspp 
-#'
-#' @return saves plot to figures_output/
-#' @export
-#'
-#' @examples
-spp_plotter <- function(zspp) {
-  zmain = ifelse(zspp == "ALL", "All species combined", translate_bird_names(zspp, "alpha.code", "common.name"))
+# these species only need best model plotted but need legend position changed
+all <- spp_mod_plotter("ALL", save.plot = FALSE) +
+  theme(legend.position = c(.95, .05), 
+        legend.justification=c("right", "bottom"))  +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/ALL.png"), all, height = 6, width = 6)
 
-  zdat <- all_best_preds_response %>% 
-    filter(alpha.code == zspp)
-
+buff <- spp_mod_plotter("BUFF", save.plot = FALSE) +
+  theme(legend.position = c(.95, .05), 
+        legend.justification=c("right", "bottom"))  +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/BUFF.png"), buff, height = 6, width = 6)
+ 
+cang <- spp_mod_plotter("CANG", save.plot = FALSE) +
+  theme(legend.position = c(.05, .95), 
+        legend.justification=c("left", "top"))  +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/CANG.png"), cang, height = 6, width = 6)
+ 
+colo <- spp_mod_plotter("COLO", save.plot = FALSE) +
+  theme(legend.position = c(.05, .95), 
+        legend.justification=c("left", "top"))  +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/COLO.png"), colo, height = 6, width = 6)
+ 
+come <- spp_mod_plotter("COME", save.plot = FALSE) +
+  theme(legend.position = c(.05, .95), 
+        legend.justification=c("left", "top")) +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/COME.png"), come, height = 6, width = 6)
   
-  if(zspp == "BLSC") {
-    zdat = filter(zdat, Modnames == "year2")
-  }
-
-    
-  iucn_threat <- annual_per_change %>% 
-    filter(alpha.code == zspp, iucn.threat == TRUE) %>% 
-    inner_join(zdat)
+eagr <- spp_mod_plotter("EAGR", save.plot = FALSE) +
+  theme(legend.position = c(.05, .95), 
+        legend.justification=c("left", "top")) +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/EAGR.png"), eagr, height = 6, width = 6)
+ 
+pbgr <- spp_mod_plotter("PBGR", save.plot = FALSE) +
+  theme(legend.position = c(.05, .95), 
+        legend.justification=c("left", "top")) +
+  labs(x = "",
+       y = "")
+ggsave(here("figures_output/PBGR.png"), pbgr, height = 6, width = 6)
+ 
+rngr <- spp_mod_plotter("RNGR", save.plot = FALSE) +
+  theme(legend.position = c(.05, .95), 
+        legend.justification=c("left", "top")) +
+  labs(x = "",
+       y = "")
+ggsave(here("figures_output/RNGR.png"), rngr, height = 6, width = 6)
   
-  zymax = (ceiling(max(zdat$uci * 1.1)/100) * 100)
+
+ 
   
-zplot <- zdat %>% 
-  ggplot() +
-  geom_point(aes(x = study.year, y = p75.abund)) +
-  geom_line(aes(x = study.year, y = predicted)) +
-  geom_ribbon(aes(x = study.year, ymin = lci, ymax = uci), alpha = 0.5) +
-  geom_line(data = iucn_threat, aes(x = study.year, y = predicted), color = "red") +
-  scale_x_continuous(breaks = year_breaks, labels = year_breaks) +
-    theme_bw() +
-  ylim(0, zymax) +
-    labs(title = zmain,
-         x = "Year",
-         y = "Estimated abundance")
+# These species need multiple models plotted. want to save with different file name so even when don't need legend adjustments, use save.plot = FALSE and save manually 
+amwi <- spp_mod_plotter("AMWI", c("fresh_moci_giac", "year_fresh_moci"), save.plot = FALSE) +
+  theme(legend.position = c(.05, .95), 
+        legend.justification=c("left", "top")) +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/AMWI_2mods.png"), amwi, height = 6, width = 6)
+
+
+blsc <- spp_mod_plotter("BLSC", c("year2", "year"), save.plot = FALSE) +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/BLSC_2mods.png"), blsc, height = 6, width = 6)
+
+ 
+bran <- spp_mod_plotter("BRAN", c("year2", "intercept"), save.plot = FALSE) +
+  theme(legend.position = c(.05, .95), 
+        legend.justification=c("left", "top")) +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/BRAN_2mods.png"), bran, height = 6, width = 6)
+
+cogo <- spp_mod_plotter("COGO", c("year_fresh_moci", "year_moci", "year_fresh"), save.plot = FALSE) +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/COGO_3mods.png"), cogo, height = 6, width = 6)
+
+come <- spp_mod_plotter("COME", c("year_moci", "year"), save.plot = FALSE) +
+  theme(legend.position = c(.05, .95), 
+        legend.justification=c("left", "top")) +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/COME_2mods.png"), come, height = 6, width = 6)
+
+nopi <- spp_mod_plotter("NOPI", c("year2", "intercept"), save.plot = FALSE) +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/NOPI_2mods.png"), nopi, height = 6, width = 6)
+
+peco <- spp_mod_plotter("PECO", c("year", "intercept"), save.plot = FALSE) +
+  theme(legend.position = c(.05, .95), 
+        legend.justification=c("left", "top")) +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/PECO_2mods.png"), peco, height = 6, width = 6)
+
+rbme <- spp_mod_plotter("RBME", c("year2", "year"), save.plot = FALSE) +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/RBME_2mods.png"), rbme, height = 6, width = 6)
+ 
+rudu <- spp_mod_plotter("RUDU", c("year2_fresh", "year"), save.plot = FALSE) +
+  labs(x = "",
+       y = "")
+ ggsave(here("figures_output/RUDU_2mods.png"), rudu, height = 6, width = 6)
   
-  ggsave(here(paste("figures_output/", zspp, ".png", sep = "")), zplot, height = 6, width = 6)
-  
-}
-
-
-spp_plotter("BLSC")
-
-map(trend_spp$alpha.code, spp_plotter)
-
+#
 # stick plots for all species in same figure ----
 all_best_preds_response %>% 
   filter(!is.na(alpha.code)) %>% 
@@ -103,76 +155,135 @@ all_best_preds_response %>%
 
 
 # plot GWTE with split in red line for restoration ----
-  gwte <- all_best_preds_response %>% 
-    filter(alpha.code == "GWTE") %>% 
-  mutate(Modnames = factor(Modnames, levels = c("year_giac", "intercept")))
+
+    mod.ranks <- get_aic("GWTE") %>%
+    filter(Modnames %in% c("year_giac", "intercept")) %>%
+    distinct(Modnames, Delta_AICc) %>% 
+    arrange(Delta_AICc) %>%
+    mutate(mod.name.out = ifelse(Modnames == "intercept", "Intercept only", Modnames)) %>% 
+    fix_mod_name_out()
 
 
-  gwte_iucn_threat <- annual_per_change %>% 
-    filter(iucn.threat == TRUE) %>% 
-    inner_join(gwte)
+  gwte <- map2_df("GWTE", c("year_giac", "intercept"), mod_predictions_link) %>%
+  data.frame() %>% 
+  mutate(lci = exp(fit - (1.96 * se.fit)),
+         uci = exp(fit + (1.96 * se.fit)),
+         predicted = exp(fit)) %>%
+  left_join(readRDS(here("data_files/spp_annual_full_preds")) %>% select(alpha.code, study.year, p75.abund)) %>% 
+  mutate(mod.name.out = ifelse(Modnames == "intercept", "Intercept only", Modnames)) %>% 
+    fix_mod_name_out() %>% 
+    left_join(get_aic("GWTE") %>% select(Modnames, Delta_AICc)) %>% 
+    arrange(Delta_AICc, study.year) %>% 
+    mutate(mod.name.out = factor(mod.name.out, levels = mod.ranks$mod.name.out))
   
-  zymax = (ceiling(max(gwte$uci * 1.1)/100) * 100)
+  
+  gwte_iucn_threat <- gwte %>% 
+    mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name")) %>%
+    is_iucn_threatened_trend()
+  
+  
+   
+  y.max = ifelse(max(gwte$p75.abund, na.rm = TRUE) > max(gwte$uci), 
+                 max(gwte$p75.abund, na.rm = TRUE),
+                 max(gwte$uci))
+  
+  y.splitter = case_when(y.max < 70 ~ 10,
+                         (y.max >= 70 & y.max <  150) ~ 20,
+                         (y.max >= 150 & y.max < 300) ~ 50,
+                         (y.max >=300 & y.max < 700) ~ 100,
+                         (y.max >= 700 & y.max < 1500) ~ 200,
+                         (y.max >= 1500 & y.max < 3000) ~ 500,
+                         (y.max >= 3000 & y.max < 7000) ~ 1000,
+                         (y.max >= 7000 & y.max < 30000) ~ 2000,
+                         y.max > 30000 ~ 5000)
+  
+  
+  y.top = ceiling(((y.max)/y.splitter)) * y.splitter
+  
+  
+  y.scale = seq(0, y.top, by = y.splitter)
+  y.scale.minor = seq(0, y.top, by = y.splitter/5)
+  
   
 gwte_plot <- gwte %>% 
   ggplot() +
-  geom_point(aes(x = study.year, y = p75.abund)) +
-  geom_line(aes(x = study.year, y = predicted, linetype = Modnames)) +
-  geom_ribbon(aes(x = study.year, ymin = lci, ymax = uci, linetype = Modnames), alpha = 0.5) +
-  geom_line(data = filter(gwte_iucn_threat, study.year < 2009), aes(x = study.year, y = predicted, linetype = Modnames), color = "red", show_guide = FALSE) +
-  geom_line(data = filter(gwte_iucn_threat, study.year > 2009), aes(x = study.year, y = predicted, linetype = Modnames), color = "red", show_guide = FALSE) +
-  scale_x_continuous(breaks = year_breaks, labels = year_breaks) +
+  geom_point(aes(x = study.year, y = p75.abund), size = 3) +
+  geom_line(aes(x = study.year, y = predicted, linetype = mod.name.out)) +
+  geom_ribbon(aes(x = study.year, ymin = lci, ymax = uci, linetype = mod.name.out), alpha = 0.5) +
+  geom_line(data = filter(gwte_iucn_threat, study.year < 2009), aes(x = study.year, y = predicted, linetype = mod.name.out), color = "red", show_guide = FALSE) +
+  geom_line(data = filter(gwte_iucn_threat, study.year > 2009), aes(x = study.year, y = predicted, linetype = mod.name.out), color = "red", show_guide = FALSE)  +
+  scale_x_continuous(breaks = seq(1990, 2025, by = 5), labels = seq(1990, 2025, by = 5), minor_breaks = seq(1992, 2022, by = 1)) +
+  scale_y_continuous(breaks = y.scale, labels = y.scale, minor_breaks = y.scale.minor, limits = c(0, y.top)) +
     theme_bw() +
-  theme(legend.position = c(.8, .8),
+  theme(legend.position = c(.95, .95),
+        legend.justification = c("right", "top"),
         legend.text.align = 0) +
     labs(title = "Green-winged Teal",
          x = "Year",
          y = "Estimated abundance",
-         linetype = "Model") +    
-  scale_linetype_discrete(breaks=levels(gwte$Modnames),
-                          labels = expression("Year + Restoration", "Intercept only"))
+         linetype = "Model") 
   
 gwte_plot
 
   ggsave(here("figures_output/GWTE_2mods.png"), gwte_plot, height = 6, width = 6)
-# plot year2 and year model estimates together for BLSC ----
+  
+# combine all species. need different settings for many species, so faceting doesn't work well. In stead, make each species plot separately then combine with cowplot
+  
+amco <- spp_mod_plotter("AMCO") +
+  labs(x = "",
+       y = "")
+brac <- spp_mod_plotter("BRAC") +
+  labs(x = "",
+       y = "")
+brpe <- spp_mod_plotter("BRPE") +
+  labs(x = "",
+       y = "")
+cogo <- spp_mod_plotter("COGO") +
+  labs(x = "",
+       y = "")
+dcco <- spp_mod_plotter("DCCO") +
+  labs(x = "",
+       y = "")
+fote <- spp_mod_plotter("FOTE") +
+  labs(x = "",
+       y = "")
+gadw <- spp_mod_plotter("GADW") +
+  labs(x = "",
+       y = "")
+hogr <- spp_mod_plotter("HOGR") +
+  labs(x = "",
+       y = "")
+mall <- spp_mod_plotter("MALL") +
+  labs(x = "",
+       y = "")
+palo <- spp_mod_plotter("PALO") +
+  labs(x = "",
+       y = "")
+rtlo <- spp_mod_plotter("RTLO") +
+  labs(x = "",
+       y = "")
+scaup <- spp_mod_plotter("SCAUP") +
+  labs(x = "",
+       y = "")
+susc <- spp_mod_plotter("SUSC") +
+  labs(x = "",
+       y = "")
+wcgr <- spp_mod_plotter("WCGR") +
+  labs(x = "",
+       y = "")
+  
 
-blsc_2mods <- all_best_preds_response %>% 
-    filter(alpha.code == "BLSC") %>% 
-  mutate(Modnames = factor(Modnames, levels = c("year2", "year")))
+combined_plot <- cowplot::plot_grid(all, amco, amwi, blsc, brac, bran, brpe, buff, cang, cogo, colo, come, dcco, eagr, fote, gadw, gwte, hogr, mall, nopi, palo, pbgr, peco, rbme, rngr, rtlo, rudu, scaup, susc, wcgr)
 
-
-  iucn_threat <- annual_per_change %>% 
-    filter(iucn.threat == TRUE) %>% 
-    inner_join(blsc_2mods)
-
-blsc_2mods_plot <- blsc_2mods %>% 
-  ggplot() +
-  geom_point(aes(x = study.year, y = p75.abund)) +
-  geom_line(aes(x = study.year, y = predicted, linetype = Modnames)) +
-    geom_ribbon(aes(x = study.year, ymin = lci, ymax = uci, linetype = Modnames), alpha = 0.5) +
-  geom_line(data = iucn_threat, aes(x = study.year, y = predicted, linetype = Modnames), color = "red", show_guide = FALSE) +
-    theme_bw() +
-  theme(legend.position = c(.8, .8),
-        legend.text.align = 0) +
-    labs(title = "Black Scoter",
-         x = "Year",
-         y = "Estimated abundance",
-         linetype = "Model") +    
-  scale_linetype_discrete(breaks=levels(blsc_2mods$Modnames),
-                          labels = expression(Year^2, Year))
-
-blsc_2mods_plot
-
-  ggsave(here("figures_output/BLSC_2mods.png"), blsc_2mods_plot, height = 6, width = 6)
-
+  
+  
 # plot predictor variables ----
 
 
 predictor_plot <- readRDS(here("data_files/predictors")) %>%
   dplyr::select(-giac) %>% 
   pivot_longer(cols = c(annual.freshwater, mean.moci), names_to = "predictor", values_to = "predictor.value") %>% 
-  mutate(predictor = ifelse(predictor == "mean.moci", "MOCI", "freshwater inflow")) %>% 
+  mutate(predictor = ifelse(predictor == "mean.moci", "MOCI", "Freshwater inflow")) %>% 
   ggplot() +
     geom_line(aes(x = study.year, y = predictor.value)) +
   scale_x_continuous(breaks = year_breaks, labels = year_breaks) +
@@ -181,6 +292,8 @@ predictor_plot <- readRDS(here("data_files/predictors")) %>%
     labs(x = "Year",
          y = "Predictor value")
 
+predictor_plot  
+  
   ggsave(here("figures_output/predictor_plot.png"), predictor_plot, height = 6, width = 6)
   
   
@@ -259,7 +372,55 @@ cowplot::plot_grid(herb, div_benth, pisc, ncol = 1,
 ggsave(here("figures_output/scaled_predictions_guild.png"), width = 7.5, height = 10)
 
 
-# moci, freshwater coefs by guild --
+# predicted abundance across ranges of fresh and moci ----
+
+# get mean and SD for fresh and moci to backtransform the scaled/centered estimates
+pred_backtrans <- readRDS(here("data_files/predictors")) %>% 
+  pivot_longer(cols = c("annual.freshwater", "mean.moci"), names_to = "predictor") %>% 
+  group_by(predictor) %>% 
+  summarise(mean.val = mean(value),
+            sd.val = sd(value)) 
+
+
+moci_fresh_predictions <- bind_rows(readRDS(here("data_files/moci_predictions")) %>% rename("predictor.val" = moci) %>% mutate(predictor = "mean.moci"),
+                                    readRDS(here("data_files/fresh_predictions")) %>% rename("predictor.val" = fresh) %>% mutate(predictor = "annual.freshwater")) %>% 
+  full_join(pred_backtrans) %>% 
+  mutate(predictor.native = (predictor.val*sd.val) + mean.val,
+         abund.group = case_when(alpha.code %in% c("ALL", "SCAUP", "BUFF") ~ "high",
+                                 alpha.code %in% c("MALL", "AMWI", "EAGR", "RUDU") ~ "medium",
+                                 alpha.code %in% c("COME", "PBGR", "GADW", "COGO") ~ "low"),
+         common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
+         common.name = ifelse(common.name == "all", "All species combined", common.name),
+         predictor = ifelse(predictor == "annual.freshwater", "Freshwater inflow (mean daily CFS)", "MOCI"))
+  
+make_moci_fresh_plot <- function(zabund.group) {
+moci_fresh_predictions %>% 
+  filter(abund.group == zabund.group) %>% 
+  ggplot() +
+  geom_line(aes(x = predictor.native, y = predicted, color = common.name)) +
+  geom_ribbon(aes(x = predictor.native, ymin = lci, ymax = uci, fill = common.name), alpha = 0.25) +
+    labs(x = "",
+         y = "",
+         color = "",
+         fill = "") +
+    theme_bw() +
+  facet_grid(~predictor, scales = "free") 
+}
+
+
+high <- make_moci_fresh_plot("high") + 
+  scale_y_continuous(breaks = seq(5000, 35000, by = 5000), labels = seq(5000, 35000, by = 5000), minor_breaks = seq(3000, 35000, by = 1000))
+medium <- make_moci_fresh_plot("medium") + 
+  labs(y = "Estimated bird abundance") +
+  scale_y_continuous(minor_breaks = seq(0, 1800, by = 100))
+low <- make_moci_fresh_plot("low") + labs(x = "Predictor variable value") +
+  scale_y_continuous(minor_breaks = seq(0, 300, by = 20))
+
+cowplot::plot_grid(high, medium, low, ncol = 1, align = "v")
+
+ggsave(here("figures_output/predictor_variable_estimates.png"), width = 7.5, height = 7.5)
+
+# moci, freshwater coefs by guild NO RUN ----
 
 all_comp_coefs <- readRDS(here("data_files/all_competitive_coefs")) %>% 
   filter(variable %in% c("fresh", "moci"), Delta_AICc == 0) %>% 
@@ -293,4 +454,63 @@ ggsave(here("figures_output/moci_fresh_mean_coefs.png"), width = 7.5, height = 7
 
 
 
+# guild plots ----
+
+abund_guilds <- readRDS(here("data_files/abund_guilds"))
+
+guild_n_spp <- read.csv(here("data_files/Foraging guild table.csv")) %>% 
+  mutate(alpha.code = translate_bird_names(common.name, "common.name", "alpha.code")) %>% 
+  dplyr::select(alpha.code, guild) %>% 
+  inner_join(readRDS(here("data_files/spp_annual_full_preds"))) %>%
+  distinct(guild, alpha.code) %>% 
+  group_by(guild) %>% 
+  summarise(n.spp = n()) %>% 
+  filter(guild != "Omnivore")
+  
+guild_mod_names <- get_best_model("guild") %>% 
+  mutate(mod.name.out = fix_varb_names(Modnames)) %>% 
+  fix_mod_name_out() %>% 
+  mutate(mod.name.out = fct_inorder(mod.name.out))
+
+readRDS(here("data_files/guild_preds_response")) %>% 
+  left_join(abund_guilds %>% dplyr::select(study.year, guild, guild.total)) %>% 
+  full_join(guild_n_spp) %>% 
+  right_join(guild_mod_names) %>%  
+  mutate(guild = paste(guild, " (", n.spp, " species)", sep = "")) %>% 
+  ggplot() +  
+  geom_point(aes(x = study.year, y = guild.total)) +
+  geom_line(aes(x = study.year, y = predicted, color = mod.name.out)) +
+  geom_ribbon(aes(x = study.year, ymin = lci, ymax = uci, fill = mod.name.out), alpha = 0.1) +
+  scale_x_continuous(breaks = year_breaks, labels = year_breaks) +
+    theme_bw() +
+    labs(x = "Year",
+         y = "Estimated abundance",
+         color = "",
+         fill = "") +
+  facet_wrap(~guild, scales = "free_y", ncol = 2)
+
+ggsave(here("figures_output/guild_trends_facet.png"), width = 7.5)
+
+
+readRDS(here("data_files/guild_preds_response")) %>%
+  left_join(abund_guilds %>% dplyr::select(study.year, guild, guild.total)) %>% 
+  full_join(guild_n_spp) %>% 
+  right_join(guild_mod_names) %>%  
+  mutate(guild = paste(guild, " (", n.spp, " species)", sep = "")) %>% 
+  ggplot() +  
+  geom_point(aes(x = study.year, y = guild.total, color = guild)) +
+  geom_line(aes(x = study.year, y = predicted, color = guild)) +
+  geom_ribbon(aes(x = study.year, ymin = lci, ymax = uci, fill = guild), alpha = 0.5) +
+  scale_x_continuous(breaks = year_breaks, labels = year_breaks) +
+    theme_bw() +
+    labs(x = "Year",
+         y = "Estimated abundance",
+         color = "",
+         fill = "") 
+  #theme(legend.position = c(.8, .9),
+  #      legend.text.align = 0) +
+  #facet_wrap(~mod.name.out)
+
+
+ggsave(here("figures_output/guild_trends.png"), width = 7.5)
 
