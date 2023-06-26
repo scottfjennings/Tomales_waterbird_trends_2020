@@ -10,15 +10,12 @@ library(AICcmodavg)
 
 giac_spp <- c("AMWI", "BUFF", "CANG", "GADW", "GWTE", "MALL", "NOPI", "PBGR")
 
-giac_varbs <- data.frame(study.year = seq(1992, 2022)) %>% 
-  mutate(giac = ifelse(study.year < 2009, 0, 1))
 
 add_giac_mods <- function(zspp) {
   
   
 zspp_annual <- readRDS(here("data_files/spp_annual_full_preds")) %>% 
-  filter(alpha.code == zspp) %>% 
-  full_join(giac_varbs)
+  filter(alpha.code == zspp)
   
   zspp_mods <- readRDS(here("fitted_models/all_spp_mods"))[[zspp]]
   
