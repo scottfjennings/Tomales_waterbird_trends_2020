@@ -1,0 +1,61 @@
+---
+title: "Best model for each waterbird species"
+output: word_document
+date: "`r Sys.Date()`"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+```{r}
+
+library(tidyverse)
+library(here)
+library(birdnames)
+library(flextable)
+library(officer)
+
+custom_bird_list <- readRDS("C:/Users/scott.jennings/Documents/Projects/my_R_general/birdnames_support/data/custom_bird_list")
+
+source(here("code/analysis_utilities.R"))
+
+trend_spp <- readRDS(here("data_files/trend_spp"))
+
+
+```
+
+```{r}
+best_mods <- map_df(trend_spp$alpha.code, get_best_model) 
+
+best_mods_out <- best_mods %>% 
+  mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
+         common.name = ifelse(common.name == "all", "All species combined", common.name)) %>% 
+  group_by(Modnames) %>% 
+  summarise(Species = paste(common.name, collapse = ", "))  %>% 
+  ungroup() %>% 
+  mutate(mod.name.out = fix_varb_names(Modnames),
+         mod.name.out = gsub("_", " + ", mod.name.out),
+         mod.name.out = gsub(" \\+ \\^2\\^", "^2^", mod.name.out),
+         mod.name.out = gsub("year2", "Year^2^", mod.name.out),
+         mod.name.out = gsub("giac", "Restoration", mod.name.out),
+         mod.name.out = gsub("\\.", " * ", mod.name.out),
+         Modnames = factor(Modnames, levels = c("year2_fresh_moci", "year_fresh_moci", "year2_fresh", "year2_moci", "year2", 
+                                                "year_moci_giac", "year_giac", "year_moci", "year",
+                                                "fresh_moci_giac", "fresh_moci", "fresh", "intercept"))) %>% 
+  arrange(Modnames) %>% 
+  select(mod.name.out, Species)
+
+```
+
+Table XXX. Best model structure for each of 28 waterbird species and all species combined at Tomales Bay, California, 1992-2022.
+
+```{r}
+
+flextable(best_mods_out) %>% 
+  set_header_labels(mod.name.out = "Model structure") %>% 
+  width(width = c(3, 4))
+
+
+```

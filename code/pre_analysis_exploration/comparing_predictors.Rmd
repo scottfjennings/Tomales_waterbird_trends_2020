@@ -1,0 +1,85 @@
+---
+title: "Predictor variable comparison"
+author: "CGRC Staff - Scott Jennings"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      error = FALSE)
+```
+
+
+
+```{r}
+
+library(tidyverse)
+library(here)
+library(MASS)
+library(AICcmodavg)
+library(flextable)
+```
+
+
+```{r}
+
+preds <- readRDS(here("data_files/spp_annual_full_preds")) %>% 
+  filter(alpha.code == "ALL") %>% 
+  dplyr::select(study.year, p75.abund) %>% 
+  full_join(readRDS(here("data_files/predictors"))) %>% 
+  right_join(read.csv(here("data_files/herring_cdfw.csv"))) %>% 
+  rename("total.waterbirds" = p75.abund, "freshwater" = annual.freshwater, "moci" = mean.moci)
+
+```
+
+Herring biomass data are available 1992-2006, so we can't use herring as a predictor for our entire time series.
+
+
+The Pearson correlation between freshwater inflow and tons of herring harvested is quite low, and between MOCI and tons of herring and total waterbirds and tons of herring it is moderately low.
+```{r}
+
+preds %>% 
+  dplyr::select(total.waterbirds, freshwater, moci, tons.herring) %>% 
+  cor() 
+```
+
+```{r}
+preds %>% 
+  dplyr::select(-giac) %>% 
+  pivot_longer(cols = c(freshwater, moci, tons.herring, total.waterbirds)) %>% 
+  ggplot() +
+  geom_line(aes(x = study.year, y = value)) +
+  facet_wrap(~name, scales = "free_y", ncol = 1) +
+  theme_bw()
+
+```
+
+
+How do MOCI, freshwater inflow, and herring biomass compare in their ability to predict waterbird abundance over this time scale? We can fit a few simple models with these variables and the additive effect of year, and compare with AICc.  
+
+We can see that the models with MOCI and Freshwater inflow are ranked higher than those with herring biomass. Indeed, the 2 herring models are the two lowest-ranked among these.
+```{r}
+
+
+year <- glm.nb(total.waterbirds ~ study.year, data = preds)
+year_moci <- glm.nb(total.waterbirds ~ study.year + moci, data = preds)
+year_fresh <- glm.nb(total.waterbirds ~ study.year + freshwater, data = preds)
+year_herring <- glm.nb(total.waterbirds ~ study.year + tons.herring, data = preds)
+moci <- glm.nb(total.waterbirds ~ moci, data = preds)
+fresh <- glm.nb(total.waterbirds ~ freshwater, data = preds)
+herring <- glm.nb(total.waterbirds ~ tons.herring, data = preds)
+
+
+aictab(list(year, year_moci, year_fresh, year_herring, moci, fresh, herring), 
+                    c("year", "year_moci", "year_fresh", "year_herring", "moci", "fresh", "herring")) %>% 
+  data.frame() %>%  
+  mutate(Modnames = gsub("_", " + ", Modnames),
+         Delta_AICc = round(Delta_AICc, 3), 
+         Cum.Wt = round(Cum.Wt, 3)) %>% 
+  dplyr::select(Modnames, K, Delta_AICc, Cum.Wt) %>% 
+  flextable() %>% 
+  autofit()
+```

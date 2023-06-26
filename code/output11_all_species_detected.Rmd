@@ -1,0 +1,94 @@
+---
+title: "All species detected"
+output: word_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+
+
+```{r}
+
+library(tidyverse)
+library(here)
+library(birdnames)
+library(flextable)
+library(ftExtra)
+library(officer)
+
+
+source(here("code/analysis_utilities.R"))
+
+
+custom_bird_list <- readRDS("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/my_R_general/birdnames_support/data/custom_bird_list")
+
+
+
+```
+
+
+```{r}
+
+
+
+
+spp_day_total <- readRDS(here("data_files/spp_day_total"))
+
+spp_min_max <- spp_day_total %>% 
+  group_by(alpha.code) %>% 
+  mutate(min.max = case_when(bay.total == max(bay.total) ~ "zmax",
+                             bay.total == min(bay.total) ~ "zmin",
+                             TRUE ~ NA)) %>%
+  ungroup() %>% 
+  distinct(alpha.code, bay.total, min.max) %>% 
+  filter(!is.na(min.max)) %>% 
+  pivot_wider(id_cols = alpha.code, values_from = bay.total, names_from = min.max) %>% 
+  mutate(zmin = replace_na(zmin, 0)) %>% 
+  pivot_longer(cols = c(zmin, zmax), values_to = "bay.total", names_to = "min.max") %>% 
+  arrange(alpha.code, bay.total)%>% 
+  pivot_wider(id_cols = alpha.code, values_from = bay.total, names_from = min.max)
+
+spp_n_years <- spp_day_total %>% 
+  distinct(alpha.code, study.year) %>% 
+  group_by(alpha.code) %>% 
+  summarise(n.years = n()) %>% 
+  ungroup()
+
+
+spp_detected <- full_join(spp_min_max, spp_n_years) %>% 
+  mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
+         sci.name = translate_bird_names(alpha.code, "alpha.code", "species"),
+         taxonomic.order = translate_bird_names(alpha.code, "alpha.code", "taxonomic.order"),
+         group.taxa = grepl("spp", common.name) | grepl("spp", sci.name)) %>% 
+  arrange(group.taxa, taxonomic.order) %>% 
+  select(common.name, sci.name, n.years, zmin, zmax, group.taxa)
+
+```
+
+Supplementary table 1. All species detected during waterbird surveys at Tomales Bay, California, 1992-2022. Shown for each species are the number of years the species was detected on at least one survey, and the minimum and maximum number counted on any single survey.
+
+```{r}
+flextable(spp_detected, col_keys = c("dummy", "n.years", "zmin", "zmax")) %>% 
+  compose(j = "dummy", value = as_paragraph(common.name, " (", as_i(sci.name), ")")) %>% 
+  add_header_row(values = c("", "", "Single day count"), colwidths = c(1, 1, 2)) %>%
+  set_header_labels(out.name = "Species",
+                    n.years = "# years detected",
+                    zmin = "Minimum",
+                    zmax = "Maximum")%>% 
+  align(j = 2:4, align = "center", part = "all") %>%  
+  border_remove() %>% 
+  border(i = 2, j = 3:4, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 1, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 2, border.bottom = fp_border(color = "black"), part = "header") %>%
+  border(i = nrow(spp_detected), border.bottom = fp_border(color = "black"), part = "body") %>%
+  autofit() %>% 
+  fit_to_width(max_width = 7.5)
+```
+
+

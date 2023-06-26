@@ -1,0 +1,97 @@
+---
+title: "Waterbird abundance percent change"
+output: word_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+
+
+```{r}
+
+library(tidyverse)
+library(here)
+library(birdnames)
+library(flextable)
+library(ftExtra)
+library(officer)
+
+percent_changes <- readRDS(here("data_files/percent_changes")) 
+
+
+
+
+
+```
+
+
+
+
+```{r}
+abund_table <- percent_changes %>% 
+  filter(!common.name %in% c("Diving benthivore", "Herbivore", "Piscivore"), study.year == 2022, phase == "overall") %>% 
+  arrange(-predicted) %>% 
+  select(common.name, pred.out) 
+
+
+```
+
+
+```{r}
+flextable(abund_table) %>%  
+  set_header_labels(common.name = "Species",
+                    pred.out = "Estimated abundance in 2022 (95% CI)")%>% 
+  align(j = 2, align = "center", part = "all") %>% 
+  autofit() %>% 
+  fit_to_width(max_width = 7.5) %>%
+  colformat_md()
+  
+```
+
+```{r fig.align='center', fig.height = 8}
+
+percent_changes %>% 
+  filter(!common.name %in% c("Diving benthivore", "Herbivore", "Piscivore", "All species combined"), study.year == 2022, phase == "overall") %>%
+  arrange(-predicted) %>%  
+  ggplot() +
+  geom_col(aes(x = fct_reorder(common.name, predicted), y = predicted)) +
+  coord_flip() +
+  theme_bw() +
+  labs(x = "",
+       y = "Estimated abundance",
+       title = "Relative waterbird abundance in 2022")
+
+
+ ggsave(here("figures_output/relative_abund_2022.png"), height = 6, width = 6)
+
+  
+```
+
+```{r fig.align='center', fig.height = 8}
+ 
+percent_changes %>% 
+  filter(!common.name %in% c("Diving benthivore", "Herbivore", "Piscivore", "All species combined"), study.year == 2022, phase == "overall") %>% 
+  mutate(abund.group = case_when(predicted > 1000 ~ "high abundance",
+                                 between(predicted, 100, 1000) ~ "medium abundance",
+                                 predicted < 100 ~ "low abundance"),
+         abund.group = factor(abund.group, levels = c("high abundance", "medium abundance", "low abundance"))) %>% 
+  arrange(-predicted) %>%  
+  ggplot() +
+  geom_col(aes(x = fct_reorder(common.name, predicted), y = predicted)) +
+  coord_flip() +
+  theme_bw() +
+  labs(x = "",
+       y = "Estimated abundance",
+       title = "Relative waterbird abundance in 2022") +
+    facet_wrap(~ abund.group, ncol = 1, scales = "free")
+
+
+ ggsave(here("figures_output/relative_abund_facet_2022.png"), height = 6, width = 6)
+
+```

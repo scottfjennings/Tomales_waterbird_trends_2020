@@ -1,0 +1,84 @@
+---
+title: "Waterbird trend best model plots"
+output: word_document
+date: "`r Sys.Date()`"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+
+
+```{r}
+
+library(tidyverse)
+library(here)
+library(birdnames)
+library(knitr)
+
+
+
+custom_bird_list <- readRDS("C:/Users/scott.jennings/Documents/Projects/my_R_general/birdnames_support/data/custom_bird_list")
+
+
+source(here("code/analysis_utilities.R"))
+
+```
+
+
+Figure 1. Map showing Tomales Bay, California. Lines show approximate route of each boat.
+
+Figure 2. Values of Freshwater inflow and mean annual MOCI at Tomales Bay, California, 1992-2022. 
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = 4}
+include_graphics(here("figures_output/predictor_plot.png"))
+```
+
+
+Figures X. Trends in abundance for 28 waterbird species and all species combined at Tomales Bay, California, 1992-2022. For each species' plot, the line and shaded ribbon show the estimated abundance and 95% Confidence Interval from the best supported model, and the points indicate the raw data the models were fitted to (note no surveys in 2020). The estimates were generated at the mean values for MOCI and freshwater inflow, and actual values of the restoration dummy variable, where those variables were included in the best model. Where the fitted line is red indicates when the annual change in abundance was ≤ -2% per year for at least 10 consecutive years, which meets the IUCN criteria for listing as Near Threatened or higher. For seven species, estimated abundances are shown for 2 models wehre a competitive model (Δ AICc ≤ 2) yielded somewhat different estimates than the best model. 
+
+
+Common Goldeneye, Horned Grebe, Pacific Loon, Surf Scoter, Black Scoter, Red-breasted Merganser, Ruddy Duck; Figure 3) and decreased overall but had a peak somewhere in the middle of the study for three species (Brant, Gadwall, Western/Clark's Grebe, Brown Pelican; 
+```{r, echo=FALSE, fig.align='center'}
+
+blsc <- spp_mod_plotter("BLSC", c("year2", "year"))
+
+cogo <- spp_mod_plotter("COGO", c("year_fresh_moci")) +
+  theme(legend.position = c(.7, 0.8)) +
+  labs(x = "", y = "")
+ 
+hogr <- spp_mod_plotter("HOGR", c("year")) +
+  labs(x = "", y = "")
+
+palo <- spp_mod_plotter("PALO", c("year")) +
+  labs(x = "", y = "")
+
+rbme <- spp_mod_plotter("RBME", c("year2", "year")) +
+  labs(x = "", y = "")
+ 
+rudu <- spp_mod_plotter("RUDU", c("year2_fresh", "year")) +
+  labs(x = "", y = "") 
+
+susc <- spp_mod_plotter("SUSC", c("year")) +
+  labs(x = "", y = "")
+
+cowplot::plot_grid(blsc, cogo, hogr, palo, rbme, rudu, susc, ncol = 2)
+
+
+
+```
+
+<br>  
+Figure XX. Changes in the estimated total number of birds across the range of two predictor variables considered at Tomales Bay, California, 1992-2022. Species are shown only if the given predictor variable was included in the best supported model for that species. For each species and each predictor variable the line represents the estimated abundance across the range of observed values for that predictor variable. The estimates for Freshwater inflow were generated at the mean values for MOCI and vice versa.
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = 4}
+include_graphics(here("figures_output/predictor_variable_estimates.png"))
+```
+

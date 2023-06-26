@@ -1,0 +1,103 @@
+---
+title: "Waterbird abundance percent change"
+output: word_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+
+
+```{r}
+
+library(tidyverse)
+library(here)
+library(birdnames)
+library(flextable)
+library(ftExtra)
+library(officer)
+
+
+source(here("code/analysis_utilities.R"))
+
+
+
+custom_bird_list <- readRDS("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/my_R_general/birdnames_support/data/custom_bird_list")
+
+
+```
+
+
+
+
+```{r}
+
+percent_changes <- readRDS(here("data_files/percent_changes")) %>% 
+  mutate(common.name = factor(common.name, levels = c("All species combined", "Diving benthivore", "Herbivore", "Piscivore", "American Coot", "American Wigeon", "Black Scoter", "Brandt's Cormorant", "Brant", "Brown Pelican", "Bufflehead", "Canada Goose", "Common Goldeneye", "Common Loon", "Common Merganser", "Double-crested Cormorant", "Eared Grebe", "Forster's Tern", "Gadwall", "Green-winged Teal", "Horned Grebe", "Mallard", "Northern Pintail", "Pacific Loon", "Pelagic Cormorant", "Pied-billed Grebe", "Red-breasted Merganser", "Red-necked Grebe", "Red-throated Loon", "Ruddy Duck", "Scaup spp", "Surf Scoter", "Western/Clark's Grebe"))) %>% 
+  arrange(common.name, phase, study.year) %>% 
+  filter(!common.name %in% c("Diving benthivore", "Herbivore", "Piscivore"), phase == "overall") 
+
+
+
+estimates_wide <- percent_changes %>% 
+  select(common.name, which.year, pred.out) %>%  
+  mutate(which.year = paste(which.year, "estimate", sep = ".")) %>% 
+  pivot_wider(id_cols = c("common.name"), values_from = pred.out, names_from = which.year)
+
+
+iucn <- readRDS(here("data_files/all_best_preds_response"))%>% 
+    mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name")) %>%
+    is_iucn_threatened_trend() %>% 
+  ungroup() %>% 
+  distinct(alpha.code, decline.dur)
+
+
+
+out_table <- estimates_wide %>% 
+  full_join(percent_changes %>% filter(!is.na(percent.change)) %>% distinct(common.name, alpha.code, percent.change)) %>% 
+  full_join(iucn) %>% 
+  left_join(read.csv(here("data_files/Foraging guild table.csv")) %>%
+              mutate(alpha.code = translate_bird_names(common.name, "common.name", "alpha.code")) %>%
+              dplyr::select(alpha.code, guild)) %>% 
+  mutate(zbreak1 = "",
+         zbreak2 = "",
+         common.name = as.character(common.name),
+         common.name = ifelse(alpha.code %in% c("AMWI", "BUFF", "CANG", "GADW", "GWTE", "MALL", "NOPI", "PBGR"), paste(common.name, "*", sep = ""), common.name)) %>% 
+  select(common.name, guild, zbreak1, start.estimate, end.estimate, zbreak2, percent.change, decline.dur)
+
+```
+
+
+
+Table X. Changes in estimated abundance for 29 waterbird species and all species combined at Tomales Bay, California, 1992-2022. Estimates with 95% Confidence Intervals (%95 CI) are from the best supported model (lowest AICc value) for all but two species. In the case of Black Scoter, the best model (year2) gave estimates for the early years that seem unrealistically high, whereas the second best model (year; delta aicc = 0.3) seemed to give more reasonable estimates relative to the raw data. For Green-winged Teal the best model (Year + Restoration) estimates seem to be driven by a single particularly large value in 2011; 2 competitive models (Year, Δ AICc = 1.043; and Year + MOCI + Restoration, Δ AICc = 1.649) had mostly uninformative parameters (only Year in Year + MOCI + Restoration informative), so we included estimates for the next best model, the Intercept only model, which had Δ AICc = 2.152. Also shown is the foraging guild each species was assigned to and the number of years a species' decline met IUCN criteria for listing as near threatened or higher (blank if criteria not met). * indicates species we expected abundance to be related to the Giacomini Restoration.
+```{r}
+flextable(out_table) %>% 
+  add_header_row(values = c("", "Estimated abundance (95% CI)", ""), colwidths = c(3, 2, 3)) %>% 
+  set_header_labels(common.name = "Species",
+                    guild = "Foraging\nguild",
+                    zbreak1 = "",
+                    start.estimate = "1992",
+                    end.estimate = "2022",
+                    zbreak2 = "",
+                    percent.change = "% change",
+                    decline.dur = "# years decline met\nIUCN criteria")%>% 
+  align(j = 2:8, align = "center", part = "all") %>% 
+  border_remove() %>% 
+  border(i = 2, j = 3:4, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 1, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 2, border.bottom = fp_border(color = "black"), part = "header") %>%
+  border(i = nrow(out_table), border.bottom = fp_border(color = "black"), part = "body") %>%
+  autofit() %>% 
+  fit_to_width(max_width = 7.5) %>%
+  colformat_md()
+  
+
+
+```
+
+
