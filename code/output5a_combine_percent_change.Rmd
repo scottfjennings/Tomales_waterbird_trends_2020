@@ -19,11 +19,13 @@ library(tidyverse)
 library(here)
 library(birdnames)
 library(flextable)
+library(ftExtra)
 library(officer)
 
 percent_changes <- readRDS(here("data_files/percent_changes")) %>% 
-  mutate(common.name = factor(common.name, levels = c("All species combined", "Diving benthivore", "Herbivore", "Piscivore", "American Wigeon", "Black Scoter", "Brandt's Cormorant", "Brant", "Brown Pelican", "Bufflehead", "Canada Goose", "Clark's Grebe", "Common Goldeneye", "Common Loon", "Common Merganser", "Double-crested Cormorant", "Eared Grebe", "Forster's Tern", "Gadwall", "Green-winged Teal", "Horned Grebe", "Mallard", "Northern Pintail", "Pacific Loon", "Pelagic Cormorant", "Pied-billed Grebe", "Red-breasted Merganser", "Red-necked Grebe", "Red-throated Loon", "Ruddy Duck", "Scaup", "Surf Scoter", "Western Grebe"))) %>% 
-  arrange(common.name, phase, study.year)
+  mutate(common.name = factor(common.name, levels = c("All species combined", "Diving benthivore", "Herbivore", "Piscivore", "American Coot", "American Wigeon", "Black Scoter", "Brandt's Cormorant", "Brant", "Brown Pelican", "Bufflehead", "Canada Goose", "Common Goldeneye", "Common Loon", "Common Merganser", "Double-crested Cormorant", "Eared Grebe", "Forster's Tern", "Gadwall", "Green-winged Teal", "Horned Grebe", "Mallard", "Northern Pintail", "Pacific Loon", "Pelagic Cormorant", "Pied-billed Grebe", "Red-breasted Merganser", "Red-necked Grebe", "Red-throated Loon", "Ruddy Duck", "Scaup", "Surf Scoter", "Western/Clark's Grebe"))) %>% 
+  arrange(common.name, phase, study.year) %>% 
+  filter(!common.name %in% c("Diving benthivore", "Herbivore", "Piscivore")) 
 
 
 
@@ -67,7 +69,7 @@ out_table <- full_join(estimates_wide, years_wide) %>%
 
 
 
-Table X. Percent change in estimated abundance for 29 waterbird species and all species combined at Tomales Bay, California, 1992-2022. Estimates with 95% Confidence Intervals (%95 CI) are from the best supported model for each species. The abundances and percent change for the entire study period are shown in bold for each species. Where the trend in estimated abundance changed directions during the study (quadratic year effect in best model), the abundances and percent change are shown separately for the increasing and decreasing periods. Note: % changes are the same for the three foraging guilds because those estimates came from the same model (with the additive guild effect).
+Table X. Percent change in estimated abundance for 28 waterbird species and all species combined at Tomales Bay, California, 1992-2022. Estimates with 95% Confidence Intervals (%95 CI) are from the best supported model for each species. The abundances and percent change for the entire study period are shown in bold for each species. Where the trend in estimated abundance changed directions during the study (quadratic year effect in best model), the abundances and percent change are shown separately for the increasing and decreasing periods. Estimates are from the best supported model (lowest AICc value) for all but two species. In the case of Black Scoter, the best model (year2) gave estimates for the early years that seem unrealistically high, whereas the second best model (year; delta aicc = 0.3) seemed to give more reasonable estimates relative to the raw data. For Green-winged Teal the best model (Year + Restoration) estimates seem to be driven by a single particularly large value in 2011; 2 competitive models (Year, Δ AICc = 1.043; and Year + MOCI + Restoration, Δ AICc = 1.649) had mostly uninformative parameters (only Year in Year + MOCI + Restoration informative), so we included estimates for the next best model, the Intercept only model, which had Δ AICc = 2.152. 
 ```{r}
 flextable(out_table) %>% 
   add_header_row(values = c("", "start", "", "end", ""), colwidths = c(1, 2, 1, 2, 1)) %>% 
@@ -77,7 +79,7 @@ flextable(out_table) %>%
                     zbreak = "",
                     end.year = "year",
                     end.estimate = "estimate (95% CI)",
-                    percent.change = "% change")%>% 
+                    percent.change = "% change") %>% 
   align(j = 2:6, align = "center", part = "all") %>% 
   border_remove() %>% 
   border(i = 2, j = 2:3, border.top = fp_border(color = "black"), part = "header") %>% 
@@ -88,7 +90,8 @@ flextable(out_table) %>%
   border(i = nrow(out_table), border.bottom = fp_border(color = "black"), part = "body") %>%
   bold(i = bold_rows$znum, bold = TRUE, part = "body") %>% 
   autofit() %>% 
-  fit_to_width(max_width = 7.5)
+  fit_to_width(max_width = 7.5) %>%
+  colformat_md()
   
 
 
