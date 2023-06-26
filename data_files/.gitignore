@@ -14,3 +14,11 @@ all_competitive_coefs
 coefs_wide
 guild_preds_response
 percent_changes
+abund_guilds
+guild_competitive_coefs
+all_best_preds_response
+fresh_predictions
+guild_aic
+herring_cdfw.csv
+moci_predictions
+spp_day_total
