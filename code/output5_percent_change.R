@@ -5,7 +5,7 @@ library(tidyverse)
 library(here)
 library(birdnames)
 
-custom_bird_list <- readRDS("C:/Users/scott.jennings/Documents/Projects/my_R_general/birdnames_support/data/custom_bird_list")
+custom_bird_list <- readRDS("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/my_R_general/birdnames_support/data/custom_bird_list")
 
 source(here("code/analysis_utilities.R"))
 
@@ -19,11 +19,13 @@ all_best_preds_response <- readRDS(here("data_files/all_best_preds_response")) %
   mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
          common.name = ifelse(common.name == "all", "All species combined", common.name)) %>% 
   filter(!(alpha.code == "BLSC" & Modnames == "year2"),
-         !(alpha.code == "GWTE"  & Modnames == "year_giac")) %>% 
-  bind_rows(readRDS(here("data_files/guild_preds_response")) %>% 
-              rename(common.name = guild) %>% 
-              dplyr::select(-residual.scale, -moci, -fresh) %>% 
-              mutate(Modnames = "year2_guild_fresh_moci"))
+         !(alpha.code == "GWTE"  & Modnames == "year_giac"))
+
+#%>% 
+#  bind_rows(readRDS(here("data_files/guild_preds_response")) %>% 
+#              rename(common.name = guild) %>% 
+#              dplyr::select(-residual.scale, -moci, -fresh) %>% 
+#              mutate(Modnames = "year2_guild_fresh_moci"))
 
 
 # calculate percent change ----
@@ -88,7 +90,10 @@ percent_changes <- bind_rows(change_quad_phase1, change_quad_phase2, change_over
 
 saveRDS(percent_changes, here("data_files/percent_changes"))
 
-                  
+percent_changes <- readRDS(here("data_files/percent_changes"))
+
+filter(percent_changes, phase == "overall") %>% 
+  view()
 
   
   
