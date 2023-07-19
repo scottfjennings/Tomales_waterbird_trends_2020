@@ -45,17 +45,31 @@ all_best_preds_response <- readRDS(here("data_files/all_best_preds_response"))
 # predict across fresh and moci range ----
 # need range of predictors, plus year of mean estimated abundance for each species with that predictor in the best model
 
-best_mods <- map_df(trend_spp$alpha.code, get_best_model)
-
 
 predictors <- readRDS(here("data_files/predictors")) %>% 
               mutate(moci = scale(mean.moci, scale = TRUE, center = TRUE)[,1],
                      fresh = scale(annual.freshwater, scale = TRUE, center = TRUE)[,1])
 # moci predictions
-moci_spp <- filter(best_mods, grepl("moci", Modnames))
+moci_spp <- map_df(trend_spp$alpha.code, get_best_model) %>% 
+  filter(grepl("moci", Modnames))
+
+
+check_moci_informative <- function(zspp, zmod.name) {
+  zspp_mod_obj <- readRDS(here("fitted_models/final_models"))[[zspp]]
+
+zspp_mods <- zspp_mod_obj[zmod.name]
+
+parms_inf <- map2_df(zspp_mods, names(zspp_mods), parm_informative) %>% 
+  filter(parm == "moci", informative95 == TRUE) %>% 
+  select(parm, informative95, Modnames) %>% 
+  mutate(alpha.code = zspp)
+}
+
+moci_inform <- map2_df(moci_spp$alpha.code, moci_spp$Modnames, check_moci_informative)
+
 
 moci_years <- readRDS(here("data_files/all_best_preds_response")) %>% 
-  right_join(moci_spp) %>% 
+  right_join(moci_inform) %>% 
   dplyr::select(alpha.code, predicted, study.year) %>% 
   group_by(alpha.code) %>% 
   mutate(mean.pred = mean(predicted),
@@ -86,7 +100,7 @@ zpred <- predict(zspp_mod, moci_newdat, type = "link", se = TRUE) %>%
 
 }
 
-moci_predictions <- map_df(moci_spp$alpha.code, get_moci_predictions) %>%
+moci_predictions <- map_df(moci_inform$alpha.code, get_moci_predictions) %>%
   data.frame() %>% 
   mutate(lci = exp(fit - (1.96 * se.fit)),
          uci = exp(fit + (1.96 * se.fit)),
@@ -95,10 +109,26 @@ moci_predictions <- map_df(moci_spp$alpha.code, get_moci_predictions) %>%
 saveRDS(moci_predictions, here("data_files/moci_predictions"))
 
 # freshwater inflow predictions
-fresh_spp <- filter(best_mods, grepl("fresh", Modnames))
+
+fresh_spp <- map_df(trend_spp$alpha.code, get_best_model) %>% 
+  filter(grepl("fresh", Modnames))
+
+
+check_fresh_informative <- function(zspp, zmod.name) {
+  zspp_mod_obj <- readRDS(here("fitted_models/final_models"))[[zspp]]
+  
+zspp_mods <- zspp_mod_obj[zmod.name]
+
+parms_inf <- map2_df(zspp_mods, names(zspp_mods), parm_informative) %>% 
+  filter(parm == "fresh", informative95 == TRUE) %>% 
+  select(parm, informative95, Modnames) %>% 
+  mutate(alpha.code = zspp)
+}
+
+fresh_inform <- map2_df(fresh_spp$alpha.code, fresh_spp$Modnames, check_fresh_informative)
 
 fresh_years <- readRDS(here("data_files/all_best_preds_response")) %>% 
-  right_join(fresh_spp) %>% 
+  right_join(fresh_inform) %>% 
   dplyr::select(alpha.code, predicted, study.year) %>% 
   group_by(alpha.code) %>% 
   mutate(mean.pred = mean(predicted),
@@ -129,7 +159,7 @@ zpred <- predict(zspp_mod, fresh_newdat, type = "link", se = TRUE) %>%
 
 }
 
-fresh_predictions <- map_df(fresh_spp$alpha.code, get_fresh_predictions) %>%
+fresh_predictions <- map_df(fresh_inform$alpha.code, get_fresh_predictions) %>%
   data.frame() %>% 
   mutate(lci = exp(fit - (1.96 * se.fit)),
          uci = exp(fit + (1.96 * se.fit)),
