@@ -21,121 +21,120 @@ year_breaks <- seq(1990, 2025, by = 5)
 map(c("AMCO", "BRAC", "BRPE", "COGO", "DCCO", "FOTE", "GADW", "HOGR", "MALL", "PALO", "RTLO", "SCAUP", "SUSC", "WCGR"), spp_mod_plotter)
 
 
-# these species only need best model plotted but need legend position changed
+# these species only need best model plotted but need legend position changed ----
 all <- spp_mod_plotter("ALL", save.plot = FALSE) +
   theme(legend.position = c(.95, .05), 
         legend.justification=c("right", "bottom"))  +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/ALL.png"), all, height = 6, width = 6)
+# ggsave(here("figures_output/ALL.png"), all, height = 6, width = 6)
 
 buff <- spp_mod_plotter("BUFF", save.plot = FALSE) +
   theme(legend.position = c(.95, .05), 
         legend.justification=c("right", "bottom"))  +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/BUFF.png"), buff, height = 6, width = 6)
+# ggsave(here("figures_output/BUFF.png"), buff, height = 6, width = 6)
  
 cang <- spp_mod_plotter("CANG", save.plot = FALSE) +
   theme(legend.position = c(.05, .95), 
         legend.justification=c("left", "top"))  +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/CANG.png"), cang, height = 6, width = 6)
+# ggsave(here("figures_output/CANG.png"), cang, height = 6, width = 6)
  
 colo <- spp_mod_plotter("COLO", save.plot = FALSE) +
   theme(legend.position = c(.05, .95), 
         legend.justification=c("left", "top"))  +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/COLO.png"), colo, height = 6, width = 6)
+# ggsave(here("figures_output/COLO.png"), colo, height = 6, width = 6)
  
 come <- spp_mod_plotter("COME", save.plot = FALSE) +
   theme(legend.position = c(.05, .95), 
         legend.justification=c("left", "top")) +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/COME.png"), come, height = 6, width = 6)
+# ggsave(here("figures_output/COME.png"), come, height = 6, width = 6)
   
 eagr <- spp_mod_plotter("EAGR", save.plot = FALSE) +
-  theme(legend.position = c(.05, .95), 
+  theme(legend.position = c(.02, .98), 
         legend.justification=c("left", "top")) +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/EAGR.png"), eagr, height = 6, width = 6)
+# ggsave(here("figures_output/EAGR.png"), eagr, height = 6, width = 6)
  
 pbgr <- spp_mod_plotter("PBGR", save.plot = FALSE) +
   theme(legend.position = c(.05, .95), 
         legend.justification=c("left", "top")) +
   labs(x = "",
        y = "")
-ggsave(here("figures_output/PBGR.png"), pbgr, height = 6, width = 6)
+# ggsave(here("figures_output/PBGR.png"), pbgr, height = 6, width = 6)
  
 rngr <- spp_mod_plotter("RNGR", save.plot = FALSE) +
-  theme(legend.position = c(.05, .95), 
+  theme(legend.position = c(.02, .98), 
         legend.justification=c("left", "top")) +
   labs(x = "",
        y = "")
-ggsave(here("figures_output/RNGR.png"), rngr, height = 6, width = 6)
+# ggsave(here("figures_output/RNGR.png"), rngr, height = 6, width = 6)
   
 
  
   
-# These species need multiple models plotted. want to save with different file name so even when don't need legend adjustments, use save.plot = FALSE and save manually 
+# These species need multiple models plotted. want to save with different file name so even when don't need legend adjustments, use save.plot = FALSE and save manually ----
 amwi <- spp_mod_plotter("AMWI", c("fresh_moci_giac", "year_fresh_moci"), save.plot = FALSE) +
-  theme(legend.position = c(.05, .95), 
+  theme(legend.position = c(.05, .98), 
         legend.justification=c("left", "top")) +
   labs(x = "",
-       y = "")
- ggsave(here("figures_output/AMWI_2mods.png"), amwi, height = 6, width = 6)
-
+       y = "") +
+  ylim(0, 2200)
+# ggsave(here("figures_output/AMWI_2mods.png"), amwi, height = 6, width = 6)
 
 blsc <- spp_mod_plotter("BLSC", c("year2", "year"), save.plot = FALSE) +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/BLSC_2mods.png"), blsc, height = 6, width = 6)
+# ggsave(here("figures_output/BLSC_2mods.png"), blsc, height = 6, width = 6)
 
- 
 bran <- spp_mod_plotter("BRAN", c("year2", "intercept"), save.plot = FALSE) +
   theme(legend.position = c(.05, .95), 
         legend.justification=c("left", "top")) +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/BRAN_2mods.png"), bran, height = 6, width = 6)
+# ggsave(here("figures_output/BRAN_2mods.png"), bran, height = 6, width = 6)
 
 cogo <- spp_mod_plotter("COGO", c("year_fresh_moci", "year_moci", "year_fresh"), save.plot = FALSE) +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/COGO_3mods.png"), cogo, height = 6, width = 6)
+# ggsave(here("figures_output/COGO_3mods.png"), cogo, height = 6, width = 6)
 
 come <- spp_mod_plotter("COME", c("year_moci", "year"), save.plot = FALSE) +
   theme(legend.position = c(.05, .95), 
         legend.justification=c("left", "top")) +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/COME_2mods.png"), come, height = 6, width = 6)
+# ggsave(here("figures_output/COME_2mods.png"), come, height = 6, width = 6)
 
 nopi <- spp_mod_plotter("NOPI", c("year2", "intercept"), save.plot = FALSE) +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/NOPI_2mods.png"), nopi, height = 6, width = 6)
+# ggsave(here("figures_output/NOPI_2mods.png"), nopi, height = 6, width = 6)
 
 peco <- spp_mod_plotter("PECO", c("year", "intercept"), save.plot = FALSE) +
   theme(legend.position = c(.05, .95), 
         legend.justification=c("left", "top")) +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/PECO_2mods.png"), peco, height = 6, width = 6)
+# ggsave(here("figures_output/PECO_2mods.png"), peco, height = 6, width = 6)
 
 rbme <- spp_mod_plotter("RBME", c("year2", "year"), save.plot = FALSE) +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/RBME_2mods.png"), rbme, height = 6, width = 6)
+# ggsave(here("figures_output/RBME_2mods.png"), rbme, height = 6, width = 6)
  
 rudu <- spp_mod_plotter("RUDU", c("year2_fresh", "year"), save.plot = FALSE) +
   labs(x = "",
        y = "")
- ggsave(here("figures_output/RUDU_2mods.png"), rudu, height = 6, width = 6)
+# ggsave(here("figures_output/RUDU_2mods.png"), rudu, height = 6, width = 6)
   
 #
 # stick plots for all species in same figure ----
@@ -207,75 +206,79 @@ all_best_preds_response %>%
   
 gwte_plot <- gwte %>% 
   ggplot() +
-  geom_point(aes(x = study.year, y = p75.abund), size = 3) +
   geom_line(aes(x = study.year, y = predicted, linetype = mod.name.out)) +
   geom_ribbon(aes(x = study.year, ymin = lci, ymax = uci, linetype = mod.name.out), alpha = 0.5) +
-  geom_line(data = filter(gwte_iucn_threat, study.year < 2009), aes(x = study.year, y = predicted, linetype = mod.name.out), color = "red", show_guide = FALSE) +
-  geom_line(data = filter(gwte_iucn_threat, study.year > 2009), aes(x = study.year, y = predicted, linetype = mod.name.out), color = "red", show_guide = FALSE)  +
+  geom_line(data = filter(gwte_iucn_threat, study.year < 2009), aes(x = study.year, y = predicted, linetype = mod.name.out), linewidth = 1, color = "red", show.legend = FALSE) +
+  geom_line(data = filter(gwte_iucn_threat, study.year > 2009), aes(x = study.year, y = predicted, linetype = mod.name.out), linewidth = 1, color = "red", show.legend = FALSE)  +
+  geom_point(aes(x = study.year, y = p75.abund), size = 3) +
   scale_x_continuous(breaks = seq(1990, 2025, by = 5), labels = seq(1990, 2025, by = 5), minor_breaks = seq(1992, 2022, by = 1)) +
   scale_y_continuous(breaks = y.scale, labels = y.scale, minor_breaks = y.scale.minor, limits = c(0, y.top)) +
     theme_bw() +
-  theme(legend.position = c(.95, .95),
+  theme(legend.position = c(.95, .98),
         legend.justification = c("right", "top"),
-        legend.text.align = 0) +
+        legend.text.align = 0,
+        legend.title=element_blank()) +
     labs(title = "Green-winged Teal",
-         x = "Year",
-         y = "Estimated abundance",
-         linetype = "Model") 
+         x = "",
+         y = "",
+         linetype = "") 
   
 gwte_plot
 
   ggsave(here("figures_output/GWTE_2mods.png"), gwte_plot, height = 6, width = 6)
   
-# combine all species. need different settings for many species, so faceting doesn't work well. In stead, make each species plot separately then combine with cowplot
+# combine all species. need different settings for many species, so faceting doesn't work well. In stead, make each species plot separately then combine with cowplot ----
   
-amco <- spp_mod_plotter("AMCO") +
+amco <- spp_mod_plotter("AMCO", save.plot = FALSE) +
   labs(x = "",
        y = "")
-brac <- spp_mod_plotter("BRAC") +
+brac <- spp_mod_plotter("BRAC", save.plot = FALSE) +
   labs(x = "",
        y = "")
-brpe <- spp_mod_plotter("BRPE") +
+brpe <- spp_mod_plotter("BRPE", save.plot = FALSE) +
   labs(x = "",
        y = "")
-cogo <- spp_mod_plotter("COGO") +
+cogo <- spp_mod_plotter("COGO", save.plot = FALSE) +
   labs(x = "",
        y = "")
-dcco <- spp_mod_plotter("DCCO") +
+dcco <- spp_mod_plotter("DCCO", save.plot = FALSE) +
   labs(x = "",
        y = "")
-fote <- spp_mod_plotter("FOTE") +
+fote <- spp_mod_plotter("FOTE", save.plot = FALSE) +
   labs(x = "",
        y = "")
-gadw <- spp_mod_plotter("GADW") +
+gadw <- spp_mod_plotter("GADW", save.plot = FALSE) +
   labs(x = "",
        y = "")
-hogr <- spp_mod_plotter("HOGR") +
+hogr <- spp_mod_plotter("HOGR", save.plot = FALSE) +
   labs(x = "",
        y = "")
-mall <- spp_mod_plotter("MALL") +
+mall <- spp_mod_plotter("MALL", save.plot = FALSE) +
+  labs(x = "",
+       y = "")+
+  theme(legend.position = c(.95, .98), 
+        legend.justification=c("right", "top")) +
+  ylim(0, 150)
+palo <- spp_mod_plotter("PALO", save.plot = FALSE) +
   labs(x = "",
        y = "")
-palo <- spp_mod_plotter("PALO") +
+rtlo <- spp_mod_plotter("RTLO", save.plot = FALSE) +
   labs(x = "",
        y = "")
-rtlo <- spp_mod_plotter("RTLO") +
+scaup <- spp_mod_plotter("SCAUP", save.plot = FALSE) +
   labs(x = "",
        y = "")
-scaup <- spp_mod_plotter("SCAUP") +
+susc <- spp_mod_plotter("SUSC", save.plot = FALSE) +
   labs(x = "",
        y = "")
-susc <- spp_mod_plotter("SUSC") +
-  labs(x = "",
-       y = "")
-wcgr <- spp_mod_plotter("WCGR") +
+wcgr <- spp_mod_plotter("WCGR", save.plot = FALSE) +
   labs(x = "",
        y = "")
   
 
-combined_plot <- cowplot::plot_grid(all, amco, amwi, blsc, brac, bran, brpe, buff, cang, cogo, colo, come, dcco, eagr, fote, gadw, gwte, hogr, mall, nopi, palo, pbgr, peco, rbme, rngr, rtlo, rudu, scaup, susc, wcgr)
+all_plots <- list("all" = all, "amco" = amco, "amwi" = amwi, "blsc" = blsc, "brac" = brac, "bran" = bran, "brpe" = brpe, "buff" = buff, "cang" = cang, "cogo" = cogo, "colo" = colo, "come" = come, "dcco" = dcco, "eagr" = eagr, "fote" = fote, "gadw" = gadw, "gwte" = gwte_plot, "hogr" = hogr, "mall" = mall, "nopi" = nopi, "palo" = palo, "pbgr" = pbgr, "peco" = peco, "rbme" = rbme, "rngr" = rngr, "rtlo" = rtlo, "rudu" = rudu, "scaup" = scaup, "susc" = susc, "wcgr" = wcgr)
 
-  
+saveRDS(all_plots, here("figures_output/all_plots"))  
   
 # plot predictor variables ----
 
@@ -298,7 +301,7 @@ predictor_plot
   
   
   
-# plots by foraging guild ----
+# plots by foraging guild NO RUN ----
   
 guilds <- read.csv(here("data_files/Foraging guild table.csv")) %>% 
   mutate(alpha.code = translate_bird_names(common.name, "common.name", "alpha.code")) %>% 
@@ -409,12 +412,23 @@ moci_fresh_predictions %>%
 
 
 high <- make_moci_fresh_plot("high") + 
-  scale_y_continuous(breaks = seq(5000, 35000, by = 5000), labels = seq(5000, 35000, by = 5000), minor_breaks = seq(3000, 35000, by = 1000))
+  scale_y_continuous(breaks = seq(5000, 35000, by = 5000), labels = seq(5000, 35000, by = 5000), minor_breaks = seq(3000, 35000, by = 1000)) + 
+  scale_colour_brewer(palette = "Set1") + 
+  scale_fill_brewer(palette = "Set1")
+
+
+medium_colors <- RColorBrewer::brewer.pal(8, "Dark2")[1:4]
 medium <- make_moci_fresh_plot("medium") + 
   labs(y = "Estimated bird abundance") +
-  scale_y_continuous(minor_breaks = seq(0, 1800, by = 100))
+  scale_y_continuous(minor_breaks = seq(0, 1800, by = 100)) + 
+  scale_colour_manual(values = medium_colors) + 
+  scale_fill_manual(values = medium_colors)
+
+low_colors <- RColorBrewer::brewer.pal(8, "Dark2")[5:8]
 low <- make_moci_fresh_plot("low") + labs(x = "Predictor variable value") +
-  scale_y_continuous(minor_breaks = seq(0, 300, by = 20))
+  scale_y_continuous(minor_breaks = seq(0, 300, by = 20)) + 
+  scale_colour_manual(values = low_colors) + 
+  scale_fill_manual(values = low_colors)
 
 cowplot::plot_grid(high, medium, low, ncol = 1, align = "v")
 
