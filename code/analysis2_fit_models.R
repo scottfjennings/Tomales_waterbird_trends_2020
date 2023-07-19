@@ -48,9 +48,6 @@ return(zspp_mods)
 
 }
 
-
-zz <- fit_wbird_mods("AMCO")
-
 # running inside safely() will capture errors instead of failing
 all_spp_mods<- map(trend_spp$alpha.code, quietly(fit_wbird_mods))
 
