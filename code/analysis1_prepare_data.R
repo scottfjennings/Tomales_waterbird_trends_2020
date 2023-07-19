@@ -8,7 +8,7 @@ source("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/core_mo
 source("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/core_monitoring_research/water_birds/waterbird_data_work/code/utility/waterbird_utility_functions.R")
 
 
-custom_bird_list <- make_custom_bird_list("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/my_R_general/birdnames_support/data/custom_species.csv")
+#custom_bird_list <- make_custom_bird_list("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/my_R_general/birdnames_support/data/custom_species.csv")
 #' saveRDS(custom_bird_list, "C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/my_R_general/birdnames_support/data/custom_bird_list")
 
 custom_bird_list <- readRDS("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/my_R_general/birdnames_support/data/custom_bird_list")
@@ -18,12 +18,23 @@ wbird_keep_taxa <- c("AMCOGRSCLESCBUFF", "AMCO", "COGA", "Anseriformes", "Alcida
 
 options(scipen = 999)
 # data prep ----
+# double check days are entered in raw xlsx files match those in the previous database 
+readRDS("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/core_monitoring_research/water_birds/ACR_waterbird_data_management/data_files/working_rds/new_neg_machine_bay_total") %>% 
+  distinct(date) %>% 
+  mutate(new.data = T) %>% 
+  full_join(read.csv("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/core_monitoring_research/water_birds/ACR_waterbird_data_management/data_files/survey_dates_old_db.csv") %>% 
+              mutate(date = as.Date(date))) %>% 
+  arrange(date) %>% 
+  view()
+
+
 # several dates had data quirks either in the field or on data sheets and should be excluded from analysis
-exclude_dates <- as.Date(c("2011-12-17", # Bivalve count incomplete; ponds only
+exclude_dates <- as.Date(c("2017-12-16", # Beaufort 3-4
+                           "2011-12-17", # Bivalve count incomplete; ponds only
                    "2006-02-11", # WCD not surveyed due to fog
                    "2004-12-18", # inverness, millerton not surveyed
                    "1999-12-18", # survey done north to south
-                   "1999-01-30", # strong wind, not entered in raw tallies but including here for completeness
+                   "1999-01-30", # strong wind, not entered in raw tallies but including to have a complete coded reference to excluded dates
                    #"1996-12-21", # no WCD precount, never many birds there so maybe ok to include. Also multiple data sheet ambiguities, entered raw tally data likely ok but difficult to be sure
                    "1997-12-20", # apparent large swell and strong wind in north bay
                    #"1993-02-06", # no CGP precount, never many birds there so maybe ok to include
@@ -44,8 +55,13 @@ spp_day_total <- readRDS("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranc
   group_by(study.year, date, alpha.code) %>% 
   summarise(bay.total = sum(bay.total)) %>% 
   ungroup()
+
+
   
 saveRDS(spp_day_total, here("data_files/spp_day_total"))
+
+spp_day_total <-readRDS(here("data_files/spp_day_total"))
+
 
 # add up all species each year (includes non trend species), combine with by-species data, and calculate the 75th percentile of the individual day totals for each species/species group each year
 spp_annual <- spp_day_total %>%
