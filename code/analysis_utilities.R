@@ -314,11 +314,11 @@ znewdat <- data.frame(study.year = seq(1992, 2022),
                       fresh = 0)%>% 
   mutate(giac = ifelse(study.year < 2009, 0, 1))
 
-zpred <- predict(zspp_mod, znewdat, type = "link", se = TRUE) %>% 
+zpred_new <- predict(zspp_mod, znewdat, type = "link", se = TRUE) %>% 
   bind_cols(znewdat) %>% 
   mutate(alpha.code = zspp,
          Modnames = zmod) %>% 
-  select(alpha.code, Modnames, study.year, fit, se.fit) 
+  dplyr::select(alpha.code, Modnames, study.year, fit, se.fit) 
 
 }
 
@@ -350,7 +350,8 @@ spp_mod_plotter <- function(zspp, zmod = NA, save.plot = TRUE) {
     distinct(Modnames, Delta_AICc) %>% 
     arrange(Delta_AICc) %>%
     mutate(mod.name.out = ifelse(Modnames == "intercept", "Intercept only", Modnames)) %>% 
-    fix_mod_name_out()
+    fix_mod_name_out() %>% 
+      mutate(mod.name.out2 = gsub("Year2", "Year^2^", mod.name.out))
 
 
   zdat <- map2_df(zspp, zmod, mod_predictions_link) %>%
@@ -405,23 +406,30 @@ zdat <- full_join(zdat, iucn_threat) %>%
   y.scale.minor = seq(0, y.top, by = y.splitter/5)
   
   
+  line.vals = mod.ranks$mod.name.out
+  line.labs = mod.ranks$mod.name.out2
+  
+  
 zplot <- zdat %>% 
   ggplot() +  
-  geom_point(aes(x = study.year, y = p75.abund), size = 3) +
   geom_line(aes(x = study.year, y = predicted, linetype = mod.name.out)) +
     geom_ribbon(aes(x = study.year, ymin = lci, ymax = uci, linetype = mod.name.out), alpha = 0.5) +
-  geom_line(data = iucn_threat, aes(x = study.year, y = predicted, linetype = mod.name.out), color = "red", show.legend = FALSE) +
+  geom_line(data = iucn_threat, aes(x = study.year, y = predicted, linetype = mod.name.out), linewidth = 1, color = "red", show.legend = FALSE) +
+  geom_point(aes(x = study.year, y = p75.abund), size = 3) +
   scale_x_continuous(breaks = seq(1990, 2025, by = 5), labels = seq(1990, 2025, by = 5), minor_breaks = seq(1992, 2022, by = 1)) +
-  scale_y_continuous(breaks = y.scale, labels = y.scale, minor_breaks = y.scale.minor, limits = c(0, y.top)) +    
+  scale_y_continuous(breaks = y.scale, labels = y.scale, minor_breaks = y.scale.minor, limits = c(0, y.top)) + 
   guides(color = "none") +
     theme_bw() +
-  theme(legend.position = c(.95, .95),
+  theme(legend.position = c(.95, .98),
         legend.justification = c("right", "top"),
-        legend.text.align = 0) +
+        legend.text.align = 0,
+        legend.title=element_blank()) +
     labs(title = zmain,
          x = "Year",
          y = "Estimated abundance",
-         linetype = "Model") 
+         linetype = "") 
+
+zplot
   
 if(save.plot == TRUE) {
     ggsave(here(paste("figures_output/", zspp, ".png", sep = "")), zplot, height = 6, width = 6)
