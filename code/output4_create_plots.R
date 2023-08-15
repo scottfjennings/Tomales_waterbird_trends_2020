@@ -137,22 +137,6 @@ rudu <- spp_mod_plotter("RUDU", c("year2_fresh", "year"), save.plot = FALSE) +
 # ggsave(here("figures_output/RUDU_2mods.png"), rudu, height = 6, width = 6)
   
 #
-# stick plots for all species in same figure ----
-all_best_preds_response %>% 
-  filter(!is.na(alpha.code)) %>% 
-  ggplot() +
-  geom_point(aes(x = study.year, y = p75.abund)) +
-  geom_line(aes(x = study.year, y = predicted, linetype = Modnames)) +
-    geom_ribbon(aes(x = study.year, ymin = lci, ymax = uci, linetype = Modnames), alpha = 0.5) +
-    theme_bw() +
-  theme(legend.position = c(.8, .8),
-        legend.text.align = 0) +
-    labs(x = "Year",
-         y = "Estimated abundance") +
-  facet_wrap(~alpha.code, scales = "free_y")
-
-
-
 # plot GWTE with split in red line for restoration ----
 
     mod.ranks <- get_aic("GWTE") %>%
@@ -163,7 +147,7 @@ all_best_preds_response %>%
     fix_mod_name_out()
 
 
-  gwte <- map2_df("GWTE", c("year_giac", "intercept"), mod_predictions_link) %>%
+  gwte_dat <- map2_df("GWTE", c("year_giac", "intercept"), mod_predictions_link) %>%
   data.frame() %>% 
   mutate(lci = exp(fit - (1.96 * se.fit)),
          uci = exp(fit + (1.96 * se.fit)),
@@ -176,15 +160,15 @@ all_best_preds_response %>%
     mutate(mod.name.out = factor(mod.name.out, levels = mod.ranks$mod.name.out))
   
   
-  gwte_iucn_threat <- gwte %>% 
+  gwte_iucn_threat <- gwte_dat %>% 
     mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name")) %>%
     is_iucn_threatened_trend()
   
   
    
-  y.max = ifelse(max(gwte$p75.abund, na.rm = TRUE) > max(gwte$uci), 
-                 max(gwte$p75.abund, na.rm = TRUE),
-                 max(gwte$uci))
+  y.max = ifelse(max(gwte_dat$p75.abund, na.rm = TRUE) > max(gwte$uci), 
+                 max(gwte_dat$p75.abund, na.rm = TRUE),
+                 max(gwte_dat$uci))
   
   y.splitter = case_when(y.max < 70 ~ 10,
                          (y.max >= 70 & y.max <  150) ~ 20,
@@ -204,7 +188,7 @@ all_best_preds_response %>%
   y.scale.minor = seq(0, y.top, by = y.splitter/5)
   
   
-gwte_plot <- gwte %>% 
+gwte <- gwte_dat %>% 
   ggplot() +
   geom_line(aes(x = study.year, y = predicted, linetype = mod.name.out)) +
   geom_ribbon(aes(x = study.year, ymin = lci, ymax = uci, linetype = mod.name.out), alpha = 0.5) +
@@ -223,9 +207,9 @@ gwte_plot <- gwte %>%
          y = "",
          linetype = "") 
   
-gwte_plot
+gwte
 
-  ggsave(here("figures_output/GWTE_2mods.png"), gwte_plot, height = 6, width = 6)
+  ggsave(here("figures_output/GWTE_2mods.png"), gwte, height = 6, width = 6)
   
 # combine all species. need different settings for many species, so faceting doesn't work well. In stead, make each species plot separately then combine with cowplot ----
   
@@ -276,7 +260,7 @@ wcgr <- spp_mod_plotter("WCGR", save.plot = FALSE) +
        y = "")
   
 
-all_plots <- list("all" = all, "amco" = amco, "amwi" = amwi, "blsc" = blsc, "brac" = brac, "bran" = bran, "brpe" = brpe, "buff" = buff, "cang" = cang, "cogo" = cogo, "colo" = colo, "come" = come, "dcco" = dcco, "eagr" = eagr, "fote" = fote, "gadw" = gadw, "gwte" = gwte_plot, "hogr" = hogr, "mall" = mall, "nopi" = nopi, "palo" = palo, "pbgr" = pbgr, "peco" = peco, "rbme" = rbme, "rngr" = rngr, "rtlo" = rtlo, "rudu" = rudu, "scaup" = scaup, "susc" = susc, "wcgr" = wcgr)
+all_plots <- list("ALL" = all, "BRAN" = bran, "CANG" = cang, "GADW" = gadw, "AMWI" = amwi, "MALL" = mall, "NOPI" = nopi, "GWTE" = gwte, "SCAUP" = scaup, "SUSC" = susc, "BLSC" = blsc, "BUFF" = buff, "COGO" = cogo, "COME" = come, "RBME" = rbme, "RUDU" = rudu, "PBGR" = pbgr, "HOGR" = hogr, "RNGR" = rngr, "EAGR" = eagr, "WCGR" = wcgr, "AMCO" = amco, "FOTE" = fote, "RTLO" = rtlo, "PALO" = palo, "COLO" = colo, "BRAC" = brac, "PECO" = peco, "DCCO" = dcco, "BRPE" = brpe)
 
 saveRDS(all_plots, here("figures_output/all_plots"))  
   
@@ -289,6 +273,7 @@ predictor_plot <- readRDS(here("data_files/predictors")) %>%
   mutate(predictor = ifelse(predictor == "mean.moci", "MOCI", "Freshwater inflow")) %>% 
   ggplot() +
     geom_line(aes(x = study.year, y = predictor.value)) +
+  stat_smooth(aes(x = study.year, y = predictor.value), method = "lm", se = FALSE) +
   scale_x_continuous(breaks = year_breaks, labels = year_breaks) +
     facet_wrap(~predictor, scales = "free_y", ncol = 1) +
     theme_bw() +
@@ -297,7 +282,7 @@ predictor_plot <- readRDS(here("data_files/predictors")) %>%
 
 predictor_plot  
   
-  ggsave(here("figures_output/predictor_plot.png"), predictor_plot, height = 6, width = 6)
+  ggsave(here("figures_output/Fig2.png"), predictor_plot, height = 6, width = 6, dpi = 600)
   
   
   
@@ -414,7 +399,8 @@ moci_fresh_predictions %>%
 high <- make_moci_fresh_plot("high") + 
   scale_y_continuous(breaks = seq(5000, 35000, by = 5000), labels = seq(5000, 35000, by = 5000), minor_breaks = seq(3000, 35000, by = 1000)) + 
   scale_colour_brewer(palette = "Set1") + 
-  scale_fill_brewer(palette = "Set1")
+  scale_fill_brewer(palette = "Set1") +
+  labs(title = "High abundance species")
 
 
 medium_colors <- RColorBrewer::brewer.pal(8, "Dark2")[1:4]
@@ -422,17 +408,19 @@ medium <- make_moci_fresh_plot("medium") +
   labs(y = "Estimated bird abundance") +
   scale_y_continuous(minor_breaks = seq(0, 1800, by = 100)) + 
   scale_colour_manual(values = medium_colors) + 
-  scale_fill_manual(values = medium_colors)
+  scale_fill_manual(values = medium_colors) +
+  labs(title = "Medium abundance species")
 
 low_colors <- RColorBrewer::brewer.pal(8, "Dark2")[5:8]
 low <- make_moci_fresh_plot("low") + labs(x = "Predictor variable value") +
   scale_y_continuous(minor_breaks = seq(0, 300, by = 20)) + 
   scale_colour_manual(values = low_colors) + 
-  scale_fill_manual(values = low_colors)
+  scale_fill_manual(values = low_colors) +
+  labs(title = "Low abundance species")
 
 cowplot::plot_grid(high, medium, low, ncol = 1, align = "v")
 
-ggsave(here("figures_output/predictor_variable_estimates.png"), width = 7.5, height = 7.5)
+ggsave(here("figures_output/Fig4.png"), width = 7.5, height = 7.5, dpi = 600)
 
 # moci, freshwater coefs by guild NO RUN ----
 

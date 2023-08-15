@@ -1,5 +1,5 @@
 ---
-title: "Waterbird trend best model plots"
+title: "Waterbird trend mauscript plots"
 output: word_document
 date: "`r Sys.Date()`"
 ---
@@ -17,186 +17,104 @@ knitr::opts_chunk$set(echo = FALSE,
 ```{r}
 
 library(tidyverse)
+library(cowplot)
+library(gridExtra)
 library(here)
 library(knitr)
 
-zheight = 4
+all_plots <- readRDS(here("figures_output/all_plots"))  
+  
+
 ```
 
-
-
-
-Figures X. Trends in abundance for 28 waterbird species and all species combined at Tomales Bay, California, 1992-2022. For each species' plot, the line and shaded ribbon show the estimated abundance and 95% Confidence Interval from the best supported model, and the points indicate the raw data the models were fitted to (note no surveys in 2020). The estimates were generated at the mean values for MOCI and freshwater inflow, and actual values of the restoration dummy variable, where those variables were included in the best model. Where the fitted line is red indicates when the annual change in abundance was ≤ -2% per year for at least 10 consecutive years, which meets the IUCN criteria for listing as Near Threatened or higher. For seven species, estimated abundances are shown for 2 models where a competitive model (Δ AICc ≤ 2) yielded somewhat different estimates than the best model. In these cases the best model is depicted by the solid line and the competitive model by the dashed line. 
-
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = 4}
-include_graphics(here("figures_output/ALL.png"))
-```
-
-```{r, echo=FALSE, fig.align='center', fig.height = 4}
-#include_graphics(here("figures_output/ALL_withraw.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = 4}
-include_graphics(here("figures_output/AMCO.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = 4}
-include_graphics(here("figures_output/AMWI_2mods.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-#include_graphics(here("figures_output/BLSC.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/BLSC_2mods.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/BRAC.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/BRAN_2mods.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/BRPE.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/BUFF.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/CANG.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/COGO.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/COLO.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/COME.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/DCCO.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/EAGR.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/FOTE.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/GADW.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/GWTE_2mods.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/HOGR.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/MALL.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/NOPI_2mods.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/PALO.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/PBGR.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/PECO_2mods.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/RBME_2mods.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/RNGR.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/RTLO.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/RUDU_2mods.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/SCAUP.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/SUSC.png"))
-```
-
-
-```{r, echo=FALSE, fig.align='center', fig.height = zheight}
-include_graphics(here("figures_output/WCGR.png"))
-```
-<br>  
-Figure XX. Values of Freshwater inflow and mean annual MOCI at Tomales Bay, California, 1992-2022. 
+Figure 2. Values of Freshwater inflow and mean annual MOCI at Tomales Bay, California, 1992-2022. 
 
 
 ```{r, echo=FALSE, fig.align='center', fig.height = 4}
 include_graphics(here("figures_output/predictor_plot.png"))
 ```
 
+\newpage
 <br>  
-Figure XX. Changes in the estimated total number of birds across the range of two predictor variables considered at Tomales Bay, California, 1992-2022. Species are shown only if the given predictor variable was included in the best supported model for that species. For each species and each predictor variable the line represents the estimated abundance across the range of observed values for that predictor variable. The estimates for Freshwater inflow were generated at the mean values for MOCI and vice versa.
+
+
+Figure 3. Trends in abundance for all waterbird species combined and 29 individual species/taxa at Tomales Bay, California, 1992-2022. For each species' plot, the line and shaded ribbon show the estimated abundance and 95% Confidence Interval from the best supported model, and the points indicate the raw data the models were fitted to (note no surveys in 2020). The estimates were generated at the mean values for MOCI and freshwater inflow, and actual values of the restoration dummy variable, where those variables were included in the best model. Where the fitted line is red indicates when the annual change in abundance was ≤ -2% per year for at least 10 consecutive years, which meets the IUCN criteria for listing as Near Threatened or higher. For seven species, estimated abundances are shown for 2 models where a competitive model (Δ AICc ≤ 2) yielded somewhat different estimates than the best model. In these cases the best model is depicted by the solid line and the competitive model by the dashed line.  
+
+
+```{r, fig.width=7.5, fig.height=10.5}
+
+plot_grid(all_plots[[1]], all_plots[[2]], all_plots[[3]], all_plots[[4]], all_plots[[5]], all_plots[[6]], 
+                   ncol = 2,
+                   nrow = 3) + #perhaps reduce this for a bit more space
+draw_label("Year", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+draw_label("Estimated abundance", x=  0, y=0.5, vjust= 1.5, angle=90)
+
+ggsave(here("figures_output/Fig3a.png"), dpi = 600, width = 7.5, height = 10.5)
+
+```
+
+
+
+```{r, fig.width=7.5, fig.height=10.5}
+
+plot_grid(all_plots[[7]], all_plots[[8]], all_plots[[9]], all_plots[[10]], all_plots[[11]], all_plots[[12]], 
+                   ncol = 2,
+                   nrow = 3) + #perhaps reduce this for a bit more space
+draw_label("Year", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+draw_label("Estimated abundance", x=  0, y=0.5, vjust= 1.5, angle=90)
+
+ggsave(here("figures_output/Fig3b.png"), dpi = 600, width = 7.5, height = 10.5)
+```
+  
+Figure 3, continued.
+
+
+```{r, fig.width=7.5, fig.height=10.5}
+
+plot_grid(all_plots[[13]], all_plots[[14]], all_plots[[15]], all_plots[[16]], all_plots[[17]], all_plots[[18]], 
+                   ncol = 2,
+                   nrow = 3) + #perhaps reduce this for a bit more space
+draw_label("Year", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+draw_label("Estimated abundance", x=  0, y=0.5, vjust= 1.5, angle=90)
+
+ggsave(here("figures_output/Fig3c.png"), dpi = 600, width = 7.5, height = 10.5)
+```
+  
+Figure 3, continued.
+
+
+```{r, fig.width=7.5, fig.height=10.5}
+
+plot_grid(all_plots[[19]], all_plots[[20]], all_plots[[21]], all_plots[[22]], all_plots[[23]], all_plots[[24]], 
+                   ncol = 2,
+                   nrow = 3) + #perhaps reduce this for a bit more space
+draw_label("Year", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+draw_label("Estimated abundance", x=  0, y=0.5, vjust= 1.5, angle=90)
+
+ggsave(here("figures_output/Fig3d.png"), dpi = 600, width = 7.5, height = 10.5)
+```
+  
+Figure 3, continued.
+
+
+```{r, fig.width=7.5, fig.height=10.5}
+
+plot_grid(all_plots[[25]], all_plots[[26]], all_plots[[27]], all_plots[[28]], all_plots[[29]], all_plots[[30]], 
+                   ncol = 2,
+                   nrow = 3) + #perhaps reduce this for a bit more space
+draw_label("Year", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+draw_label("Estimated abundance", x=  0, y=0.5, vjust= 1.5, angle=90)
+
+
+ggsave(here("figures_output/Fig3e.png"), dpi = 600, width = 7.5, height = 10.5)
+```
+  
+Figure 3, continued.
+
+
+\newpage
+<br>  
+Figure 4. Changes in the estimated total number of birds across the range of two predictor variables considered at Tomales Bay, California, 1992-2022. Species are shown only if the given predictor variable was included in the best supported model for that species. For each species and each predictor variable the line represents the estimated abundance across the range of observed values for that predictor variable. The estimates for Freshwater inflow were generated at the mean values for MOCI and vice versa.
 
 
 ```{r, echo=FALSE, fig.align='center', fig.height = 4}
