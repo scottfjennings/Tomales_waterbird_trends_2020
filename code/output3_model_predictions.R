@@ -111,7 +111,8 @@ saveRDS(moci_predictions, here("data_files/moci_predictions"))
 # freshwater inflow predictions
 
 fresh_spp <- map_df(trend_spp$alpha.code, get_best_model) %>% 
-  filter(grepl("fresh", Modnames))
+  filter(grepl("fresh", Modnames)) %>% 
+  mutate(Modnames = ifelse(alpha.code == "COGO", "year_fresh", Modnames))
 
 
 check_fresh_informative <- function(zspp, zmod.name) {
@@ -120,8 +121,10 @@ check_fresh_informative <- function(zspp, zmod.name) {
 zspp_mods <- zspp_mod_obj[zmod.name]
 
 parms_inf <- map2_df(zspp_mods, names(zspp_mods), parm_informative) %>% 
-  filter(parm == "fresh", informative95 == TRUE) %>% 
-  select(parm, informative95, Modnames) %>% 
+  filter(parm == "fresh"
+         #, informative95 == TRUE
+         ) %>% 
+  #select(parm, informative95, Modnames) %>% 
   mutate(alpha.code = zspp)
 }
 
@@ -137,7 +140,8 @@ fresh_years <- readRDS(here("data_files/all_best_preds_response")) %>%
   mutate(year.diff = abs(2007 - study.year)) %>% 
   filter(year.diff == min(year.diff)) %>% 
   ungroup() %>% 
-  dplyr::select(alpha.code, study.year)
+  dplyr::select(alpha.code, study.year) %>% 
+  bind_rows(data.frame(alpha.code = "COGO", study.year = 2005))
 
 
 get_fresh_predictions <- function(zspp) {
