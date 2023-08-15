@@ -26,25 +26,26 @@ source(here("code/analysis_utilities.R"))
 trend_spp <- readRDS(here("data_files/trend_spp"))
 
 
+
+
+giac_spp <- c("AMWI", "BUFF", "CANG", "GADW", "GWTE", "MALL", "NOPI", "PBGR")
+
+
 ```
 
 ```{r}
 coefs_wide <- readRDS(here("data_files/coefs_wide")) %>% 
+  mutate(Restoration = ifelse(!alpha.code %in% giac_spp, "Not considered", Restoration)) %>% 
   select(-alpha.code, -Modnames)
 
+table_lines <- which(coefs_wide$Delta_AICc == 0)
 
-table_lines <- coefs_wide %>% 
-  arrange(common.name, Delta_AICc) %>% 
-  mutate(znum = row_number()) %>% 
-  filter(Delta_AICc == 0, common.name != "All species combined") %>% 
-  mutate(znum = znum - 1) %>% 
-  select(znum)
 ```
 
 Table XX. Competitive models for estimating trends in abundnance of 28 waterbird species and all species combined at Tomales Bay, California, 1992-2022. Shown for each species are all competitive models (Δ AICc ≤ 2) and shown for each model are the Model structure, Deviance explained (Dev. explained), and difference in AICc value between the current model and the model with the lowest AICc value (Δ AICc). A superscript dagger symbol following a variable name in Model structure indicates that variable was uninformative (95% CI overlapping 0). 
 
 
-```{r}
+```{r, eval = FALSE}
 
 
 coefs_wide %>% 
@@ -58,29 +59,51 @@ flextable() %>%
                     Delta_AICc = "\u0394 AICc") %>% 
   align(j = 3:4, align = "center", part = "all") %>% 
   border(i = 1, border.top = fp_border(color = "black"), part = "header") %>% 
-  hline(i = table_lines$znum, part = "body") %>% 
+  border(i = table_lines, border.top = fp_border(color = "black"), part = "body") %>% 
   border(i = nrow(coefs_wide), border.bottom = fp_border(color = "black"), part = "body") %>%
   autofit() %>% 
   fit_to_width(max_width = 7.5) %>%
   colformat_md()
 ```
 
+
 ```{r}
-#coefs_wide %>% mutate(common.name = ifelse(Delta_AICc == 0, common.name, "")) %>% 
-#flextable() %>% 
-#  set_header_labels(common.name = "Species",
-#                    mod.name.out = "Model structure",
-#                    dev.expl = "Dev.\nExplained",
-#                    Delta_AICc = "\u0394 AICc") %>% 
-#  add_header_row(values = c("", "Coefficients (95% CI)", ""), colwidths = c(2, 5, 2))%>% 
-#  align(j = 2:9, align = "center", part = "all") %>% 
-#  border_remove() %>% 
-#  border(i = 2, j = 3:7, border.top = fp_border(color = "black"), part = "header") %>% 
-#  border(i = 1, border.top = fp_border(color = "black"), part = "header") %>% 
-#  border(i = 2, border.bottom = fp_border(color = "black"), part = "header") %>%
-#  hline(i = table_lines$znum, part = "body") %>% 
-#  border(i = nrow(coefs_wide), border.bottom = fp_border(color = "black"), part = "body") %>%
-#  autofit() %>% 
-#  fit_to_width(max_width = 7.5)
+coefs_wide %>%  
+  select(-mod.name.out, -Delta_AICc) %>% 
+flextable() %>% 
+  set_header_labels(common.name = "Species",
+                    mod.name.out = "Model structure",
+                    dev.expl = "Dev.\nExplained") %>% 
+  add_header_row(values = c("", "Coefficients (95% CI)", ""), colwidths = c(1, 5, 1))%>% 
+  align(j = 2:7, align = "center", part = "all") %>% 
+  border_remove() %>% 
+  border(i = 2, j = 2:6, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 1, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 2, border.bottom = fp_border(color = "black"), part = "header") %>%
+  border(i = nrow(filter(coefs_wide, Delta_AICc == 0)), border.bottom = fp_border(color = "black"), part = "body") %>%
+  autofit() %>% 
+  fit_to_width(max_width = 7.5)
+
+```
+
+
+
+```{r}
+coefs_wide %>% 
+  filter(Delta_AICc == 0) %>%  
+  select(-mod.name.out, -Delta_AICc) %>% 
+flextable() %>% 
+  set_header_labels(common.name = "Species",
+                    mod.name.out = "Model structure",
+                    dev.expl = "Dev.\nExplained") %>% 
+  add_header_row(values = c("", "Coefficients (95% CI)", ""), colwidths = c(1, 5, 1))%>% 
+  align(j = 2:7, align = "center", part = "all") %>% 
+  border_remove() %>% 
+  border(i = 2, j = 2:6, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 1, border.top = fp_border(color = "black"), part = "header") %>% 
+  border(i = 2, border.bottom = fp_border(color = "black"), part = "header") %>%
+  border(i = nrow(filter(coefs_wide, Delta_AICc == 0)), border.bottom = fp_border(color = "black"), part = "body") %>%
+  autofit() %>% 
+  fit_to_width(max_width = 7.5)
 
 ```
