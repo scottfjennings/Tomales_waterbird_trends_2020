@@ -23,7 +23,7 @@ library(ftExtra)
 library(officer)
 
 percent_changes <- readRDS(here("data_files/percent_changes")) %>% 
-  mutate(common.name = factor(common.name, levels = c("All species combined", "Diving benthivore", "Herbivore", "Piscivore", "American Coot", "American Wigeon", "Black Scoter", "Brandt's Cormorant", "Brant", "Brown Pelican", "Bufflehead", "Canada Goose", "Common Goldeneye", "Common Loon", "Common Merganser", "Double-crested Cormorant", "Eared Grebe", "Forster's Tern", "Gadwall", "Green-winged Teal", "Horned Grebe", "Mallard", "Northern Pintail", "Pacific Loon", "Pelagic Cormorant", "Pied-billed Grebe", "Red-breasted Merganser", "Red-necked Grebe", "Red-throated Loon", "Ruddy Duck", "Scaup", "Surf Scoter", "Western/Clark's Grebe"))) %>% 
+  mutate(common.name = factor(common.name, levels = c("All species combined", "Diving benthivore", "Herbivore", "Piscivore", "Brant", "Canada Goose", "Gadwall", "American Wigeon", "Mallard", "Northern Pintail", "Green-winged Teal", "Scaup spp", "Surf Scoter", "Black Scoter", "Bufflehead", "Common Goldeneye", "Common Merganser", "Red-breasted Merganser", "Ruddy Duck", "Pied-billed Grebe", "Horned Grebe", "Red-necked Grebe", "Eared Grebe", "Western/Clark's Grebe", "American Coot", "Forster's Tern", "Red-throated Loon", "Pacific Loon", "Common Loon", "Brandt's Cormorant", "Pelagic Cormorant", "Double-crested Cormorant", "Brown Pelican"))) %>% 
   arrange(common.name, phase, study.year) %>% 
   filter(!common.name %in% c("Diving benthivore", "Herbivore", "Piscivore")) 
 
