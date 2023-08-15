@@ -4,7 +4,7 @@ library(lubridate)
 library(here)
 library(birdnames)
 
-custom_bird_list <- readRDS("C:/Users/scott.jennings/Documents/Projects/my_R_general/birdnames_support/data/custom_bird_list")
+custom_bird_list <- readRDS("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/my_R_general/birdnames_support/data/custom_bird_list")
 
 
 source(here("code/analysis_utilities.R"))
@@ -15,7 +15,7 @@ trend_spp <- readRDS(here("data_files/trend_spp"))
 spp_day_total <- readRDS(here("data_files/spp_day_total"))
 
 # mean and sd  surveys per winter ----
-surveys_per_winter <- spp_day_total %>% 
+spp_day_total %>% 
   distinct(study.year, date) %>% 
   group_by(study.year) %>% 
   summarise(num.studies = n()) %>% 
@@ -25,7 +25,7 @@ surveys_per_winter <- spp_day_total %>%
             sd.studies = sd(num.studies))
 
 # mean and sd birds per survey ----
-birds_per_survey <- spp_day_total %>% 
+spp_day_total %>% 
   group_by(study.year, date) %>% 
   summarise(tot.birds.day = sum(bay.total)) %>% 
   ungroup() %>% 
@@ -68,13 +68,13 @@ readRDS(here("data_files/predictors")) %>%
   group_by(name) %>% 
   summarise(min.val = min(value),
             max.val = max(value)) %>% 
-  mutate(across(contains("val"), ~ round(., 1))) %>% view()
+  mutate(across(contains("val"), ~ round(., 1)))
 # total species and number of species per day ----  
   
-spp_per_day <- spp_day_total %>% 
+readRDS(here("data_files/spp_day_total_ungrouped")) %>% 
   mutate(group.spp = translate_bird_names(alpha.code, "alpha.code", "group.spp")) %>% 
   filter(is.na(group.spp), !alpha.code %in% c("MURRELET", "GOOSE", "DUCK", "SWAN", "UNTE", "TUDUSCAUP")) %>%
-  distinct(date, alpha.code) %>% 
+  distinct(date, alpha.code) %>% view()
   group_by(date) %>% 
   summarise(tot.spp = n()) %>% 
   ungroup() %>% 
@@ -82,7 +82,7 @@ spp_per_day <- spp_day_total %>%
             sd.tot.spp = sd(tot.spp)) %>% 
   mutate(across(c("mean.tot.spp", "sd.tot.spp"), ~round(., 1)))
 
-tot_spp <- spp_day_total %>% 
+spp_day_total %>% 
   mutate(group.spp = translate_bird_names(alpha.code, "alpha.code", "group.spp")) %>% 
   filter(is.na(group.spp), !alpha.code %in% c("MURRELET", "GOOSE", "DUCK", "SWAN", "UNTE", "TUDUSCAUP")) %>% 
   distinct(alpha.code) %>% 
@@ -170,3 +170,13 @@ meaningful_changes <- readRDS(here("data_files/percent_changes")) %>%
 
 write.csv(meaningful_changes, here("documents/meaningful_changes.csv"), row.names = FALSE)
 
+# hogr percent decline ----
+
+hogr <- readRDS(here("data_files/all_best_preds_response")) %>% 
+  filter(alpha.code == "HOGR") %>% 
+  mutate(percent.change = 100 * ((predicted/lag(predicted))-1))
+
+#  percent decline explore ----
+
+preds <- readRDS(here("data_files/percent_changes"))
+filter(preds, phase != "overall") %>% arrange(percent.change) %>% view()
