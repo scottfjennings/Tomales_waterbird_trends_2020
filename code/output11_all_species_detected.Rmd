@@ -38,7 +38,7 @@ custom_bird_list <- readRDS("C:/Users/scott.jennings/OneDrive - Audubon Canyon R
 
 
 
-spp_day_total <- readRDS(here("data_files/spp_day_total"))
+spp_day_total <- readRDS(here("data_files/spp_day_total_ungrouped"))
 
 spp_min_max <- spp_day_total %>% 
   group_by(alpha.code) %>% 
@@ -60,18 +60,52 @@ spp_n_years <- spp_day_total %>%
   summarise(n.years = n()) %>% 
   ungroup()
 
+ibp <- read.csv("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/my_R_general/birdnames_support/data/IBP-AOS-LIST23.csv") 
+
+all_spec_levs <- ibp %>% 
+  select("alpha.code" = SPEC) %>% 
+  mutate(alpha.code = factor(alpha.code),
+         alpha.code = fct_inorder(alpha.code))
+
+wbird_spec_levs <- spp_n_years %>% 
+  select(alpha.code) %>% 
+  mutate(alpha.code = factor(alpha.code),
+         alpha.code = fct_inorder(alpha.code))
+
+z_spec_levs <- bind_rows(all_spec_levs, wbird_spec_levs) %>% 
+  distinct()
+
 
 spp_detected <- full_join(spp_min_max, spp_n_years) %>% 
   mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
-         sci.name = translate_bird_names(alpha.code, "alpha.code", "species"),
-         taxonomic.order = translate_bird_names(alpha.code, "alpha.code", "taxonomic.order"),
-         group.taxa = grepl("spp", common.name) | grepl("spp", sci.name)) %>% 
-  arrange(group.taxa, taxonomic.order) %>% 
-  select(common.name, sci.name, n.years, zmin, zmax, group.taxa)
+         sci.name = translate_bird_names(alpha.code, "alpha.code", "species")) %>%
+  mutate(alpha.code = factor(alpha.code, levels = z_spec_levs$alpha.code),
+         alpha.code = fct_drop(alpha.code),
+         alpha.code = fct_relevel(alpha.code, "CORM", after = match("DCCO", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "GOLDENEYES", after = match("BAGO", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "GOOSE", after = match("CANG", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "HEGR", after = match("EAGR", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "LOON", after = match("YBLO", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "MERG", after = match("RBME", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "MURRELET", after = match("RHAU", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "PCLO", after = match("YBLO", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "SCAUP", after = match("LESC", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "SCOTER", after = match("BLSC", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "TUDUSCAUP", after = match("SCAUP", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "DUCK", after = match("RUDU", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "SWAN", after = match("MUSW", levels(alpha.code))),
+         alpha.code = fct_relevel(alpha.code, "WCGR", after = Inf),
+         alpha.code = fct_relevel(alpha.code, "WCGR", after = match("CLGR", levels(alpha.code)))) %>% 
+  mutate(common.name = gsub("spp", "spp.", common.name),
+         common.name = ifelse(common.name == "Unidentified Duck", "Duck spp.", common.name),
+         common.name = ifelse(common.name == "Cormorant", "Cormorant spp.", common.name)) %>% 
+  arrange(alpha.code)
+
+
 
 ```
 
-Supplementary table 1. All species detected during waterbird surveys at Tomales Bay, California, 1992-2022. Shown for each species are the number of years the species was detected on at least one survey, and the minimum and maximum number counted on any single survey.
+Supplementary table 1. All taxa detected during waterbird surveys at Tomales Bay, California, 1992-2022. Shown for each taxa are the number of years the species was detected on at least one survey, and the minimum and maximum number counted on any single survey.
 
 ```{r}
 flextable(spp_detected, col_keys = c("dummy", "n.years", "zmin", "zmax")) %>% 
