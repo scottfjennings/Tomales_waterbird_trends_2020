@@ -62,6 +62,22 @@ saveRDS(spp_day_total, here("data_files/spp_day_total"))
 
 spp_day_total <-readRDS(here("data_files/spp_day_total"))
 
+# same as above but without SCAUP and WCGR lumped
+spp_day_total_ungrouped <- readRDS("C:/Users/scott.jennings/OneDrive - Audubon Canyon Ranch/Projects/core_monitoring_research/water_birds/ACR_waterbird_data_management/data_files/working_rds/new_neg_machine_bay_total") %>% 
+  wbird_add_study_day() %>% # from waterbird_utility_functions.R
+  filter(!date %in% exclude_dates, study.year > 1991) %>% 
+  bird_taxa_filter(wbird_keep_taxa) %>% 
+  mutate(alpha.code = ifelse(alpha.code == "ACGO", "CACG", alpha.code)) %>% 
+  group_by(study.year, date, alpha.code) %>% 
+  summarise(bay.total = sum(bay.total)) %>% 
+  ungroup()
+
+
+  
+saveRDS(spp_day_total_ungrouped, here("data_files/spp_day_total_ungrouped"))
+
+
+
 
 # add up all species each year (includes non trend species), combine with by-species data, and calculate the 75th percentile of the individual day totals for each species/species group each year
 spp_annual <- spp_day_total %>%
@@ -84,7 +100,13 @@ trend_spp <- spp_annual %>%
             median.p75 = median(p75.abund),
             min.p75 = min(p75.abund),
             max.p75 = max(p75.abund)) %>% 
-  filter(num.years.detected >= 20 & median.p75 >= 5, alpha.code != "HEGR")
+  filter(num.years.detected >= 20 & median.p75 >= 5, alpha.code != "HEGR") %>% 
+  mutate(tax.order = translate_bird_names(alpha.code, "alpha.code", "taxonomic.order"),
+         tax.order = case_when(alpha.code == "ALL" ~ 0,
+                               alpha.code == "SCAUP" ~ 80.1,
+                               TRUE ~ as.numeric(tax.order)),
+         tax.order = as.numeric(tax.order)) %>% 
+  arrange(tax.order)
 
 
 saveRDS(trend_spp, here("data_files/trend_spp"))
