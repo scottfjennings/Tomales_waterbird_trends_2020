@@ -28,21 +28,23 @@ trend_spp <- readRDS(here("data_files/trend_spp"))
 
 
 
-giac_spp <- c("AMWI", "BUFF", "CANG", "GADW", "GWTE", "MALL", "NOPI", "PBGR")
-
+giac_spp <- c("AMWI", "CANG", "GADW", "GWTE", "MALL", "NOPI", "AMCO")
+# added AMCO and removed BUFF, PBGR during peer review
 
 ```
 
 ```{r}
 coefs_wide <- readRDS(here("data_files/coefs_wide")) %>% 
   mutate(Restoration = ifelse(!alpha.code %in% giac_spp, "Not considered", Restoration)) %>% 
-  select(-alpha.code, -Modnames)
+  select(-alpha.code, -Modnames) %>% 
+  filter(!common.name %in% c("diving benthivore", "herbivore", "omnivore", "piscivore"))
+
 
 table_lines <- which(coefs_wide$Delta_AICc == 0)
 
 ```
 
-Table XX. Competitive models for estimating trends in abundnance of 28 waterbird species and all species combined at Tomales Bay, California, 1992-2022. Shown for each species are all competitive models (Δ AICc ≤ 2) and shown for each model are the Model structure, Deviance explained (Dev. explained), and difference in AICc value between the current model and the model with the lowest AICc value (Δ AICc). A superscript dagger symbol following a variable name in Model structure indicates that variable was uninformative (95% CI overlapping 0). 
+Table XX. Competitive models for estimating trends in abundance of 28 waterbird species and all species combined at Tomales Bay, California, 1992-2022. Shown for each species are all competitive models (Δ AICc ≤ 2) and shown for each model are the Model structure, Deviance explained (Dev. explained), and difference in AICc value between the current model and the model with the lowest AICc value (Δ AICc). A * following the coefficient estimate indicates that variable was uninformative (95% CI overlapping 0). 
 
 
 ```{r, eval = FALSE}
@@ -67,7 +69,7 @@ flextable() %>%
 ```
 
 
-```{r}
+```{r eval=FALSE}
 coefs_wide %>%  
   select(-mod.name.out, -Delta_AICc) %>% 
 flextable() %>% 
@@ -85,6 +87,8 @@ flextable() %>%
   fit_to_width(max_width = 7.5)
 
 ```
+
+<br>  
 
 
 

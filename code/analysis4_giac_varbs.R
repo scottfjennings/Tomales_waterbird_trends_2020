@@ -8,7 +8,8 @@ library(AICcmodavg)
 
 
 
-giac_spp <- c("AMWI", "BUFF", "CANG", "GADW", "GWTE", "MALL", "NOPI", "PBGR")
+giac_spp <- c("AMWI", "CANG", "GADW", "GWTE", "MALL", "NOPI", "AMCO")
+# added AMCO and removed BUFF, PBGR during peer review
 
 
 add_giac_mods <- function(zspp) {

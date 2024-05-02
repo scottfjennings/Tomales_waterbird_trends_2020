@@ -1,0 +1,163 @@
+---
+title: "Waterbird trend mauscript plots"
+output: word_document
+date: "`r Sys.Date()`"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+
+
+
+```{r}
+
+library(tidyverse)
+library(cowplot)
+library(gridExtra)
+library(here)
+library(knitr)
+
+all_plots <- readRDS(here("figures_output/mod_avg/all_plots_mod_avg"))  
+  
+
+```
+
+Figure 2. Values of Freshwater inflow and mean annual MOCI at Tomales Bay, California, 1992-2022. 
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = 4}
+include_graphics(here("figures_output/Fig2.png"))
+```
+
+\newpage
+<br>  
+
+
+Figure 3. Trends in abundance for all waterbird species combined and 29 individual species/taxa at Tomales Bay, California, 1992-2022. For each species' plot, the line and shaded ribbon show the model averaged estimated abundance and 95% Confidence Interval, and the points indicate the raw data the models were fitted to (note no surveys in 2020). The estimates were generated at the mean values for MOCI and freshwater inflow, and actual values of the restoration dummy variable. Where the fitted line is red indicates when the annual change in abundance was ≤ -2% per year for at least 10 consecutive years, which meets the IUCN criteria for listing as Near Threatened or higher.   
+
+
+```{r, fig.width=7.5, fig.height=10.5}
+
+plot_grid(all_plots[[1]] + labs(x = "", y = ""), 
+          all_plots[[2]] + labs(x = "", y = ""), 
+          all_plots[[3]] + labs(x = "", y = ""), 
+          all_plots[[4]] + labs(x = "", y = ""), 
+          all_plots[[5]] + labs(x = "", y = ""), 
+          all_plots[[6]] + labs(x = "", y = ""), 
+                   ncol = 2,
+                   nrow = 3) + #perhaps reduce this for a bit more space
+draw_label("Year", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+draw_label("Model averaged estimated abundance", x=  0, y=0.5, vjust= 1.5, angle=90)
+
+ggsave(here("figures_output/Fig3a.png"), dpi = 600, width = 7.5, height = 10.5)
+
+```
+
+
+
+```{r, fig.width=7.5, fig.height=10.5}
+
+plot_grid(all_plots[[7]] + labs(x = "", y = ""), 
+          all_plots[[8]] + labs(x = "", y = ""), 
+          all_plots[[9]] + labs(x = "", y = ""), 
+          all_plots[[10]] + labs(x = "", y = ""), 
+          all_plots[[11]] + labs(x = "", y = ""), 
+          all_plots[[12]] + labs(x = "", y = ""), 
+                   ncol = 2,
+                   nrow = 3) + #perhaps reduce this for a bit more space
+draw_label("Year", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+draw_label("Model averaged estimated abundance", x=  0, y=0.5, vjust= 1.5, angle=90)
+
+ggsave(here("figures_output/Fig3b.png"), dpi = 600, width = 7.5, height = 10.5)
+```
+  
+Figure 3, continued.
+
+
+```{r, fig.width=7.5, fig.height=10.5}
+
+plot_grid(all_plots[[13]] + labs(x = "", y = ""), 
+          all_plots[[14]] + labs(x = "", y = ""), 
+          all_plots[[15]] + labs(x = "", y = ""), 
+          all_plots[[16]] + labs(x = "", y = ""), 
+          all_plots[[17]] + labs(x = "", y = ""), 
+          all_plots[[18]] + labs(x = "", y = ""), 
+                   ncol = 2,
+                   nrow = 3) + #perhaps reduce this for a bit more space
+draw_label("Year", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+draw_label("Model averaged estimated abundance", x=  0, y=0.5, vjust= 1.5, angle=90)
+
+ggsave(here("figures_output/Fig3c.png"), dpi = 600, width = 7.5, height = 10.5)
+```
+  
+Figure 3, continued.
+
+
+```{r, fig.width=7.5, fig.height=10.5}
+
+plot_grid(all_plots[[19]] + labs(x = "", y = ""), 
+          all_plots[[20]] + labs(x = "", y = ""), 
+          all_plots[[21]] + labs(x = "", y = ""), 
+          all_plots[[22]] + labs(x = "", y = ""), 
+          all_plots[[23]] + labs(x = "", y = ""), 
+          all_plots[[24]] + labs(x = "", y = ""), 
+                   ncol = 2,
+                   nrow = 3) + #perhaps reduce this for a bit more space
+draw_label("Year", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+draw_label("Model averaged estimated abundance", x=  0, y=0.5, vjust= 1.5, angle=90)
+
+ggsave(here("figures_output/Fig3d.png"), dpi = 600, width = 7.5, height = 10.5)
+```
+  
+Figure 3, continued.
+
+
+```{r, fig.width=7.5, fig.height=10.5}
+
+plot_grid(all_plots[[25]] + labs(x = "", y = ""), 
+          all_plots[[26]] + labs(x = "", y = ""), 
+          all_plots[[27]] + labs(x = "", y = ""), 
+          all_plots[[28]] + labs(x = "", y = ""), 
+          all_plots[[29]] + labs(x = "", y = ""), 
+          all_plots[[30]] + labs(x = "", y = ""), 
+                   ncol = 2,
+                   nrow = 3) + #perhaps reduce this for a bit more space
+draw_label("Year", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+draw_label("Model averaged estimated abundance", x=  0, y=0.5, vjust= 1.5, angle=90)
+
+
+ggsave(here("figures_output/Fig3e.png"), dpi = 600, width = 7.5, height = 10.5)
+```
+  
+Figure 3, continued.
+
+```{r, fig.width=7.5, fig.height=10.5, eval = FALSE}
+
+plot_grid(all_plots[[31]] + labs(x = "", y = ""), 
+          all_plots[[32]] + labs(x = "", y = ""), 
+          #all_plots[[33]] + labs(x = "", y = ""), 
+          all_plots[[34]] + labs(x = "", y = ""), 
+                   ncol = 2,
+                   nrow = 2) + #perhaps reduce this for a bit more space
+draw_label("Year", x=0.5, y=  0, vjust=-0.5, angle= 0) +
+draw_label("Model averaged estimated abundance", x=  0, y=0.5, vjust= 1.5, angle=90)
+
+
+ggsave(here("figures_output/Fig3f.png"), dpi = 600, width = 7.5, height = 10.5)
+```
+  
+
+\newpage
+<br>  
+Figure 4. Changes in the estimated total number of birds across the range of two predictor variables considered at Tomales Bay, California, 1992-2022. Species are shown only if the given predictor variable was included in the best supported model for that species. For each species and each predictor variable the line represents estimated abundance from the best model across the range of observed values for that predictor variable. The estimates for Freshwater inflow were generated at the mean values for MOCI and vice versa. Both of these predictors were scaled and centered for modelling, but are converted back to their original scales here for better biological interpretation.
+
+
+```{r, echo=FALSE, fig.align='center', fig.height = 4}
+include_graphics(here("figures_output/Fig4.png"))
+```
+

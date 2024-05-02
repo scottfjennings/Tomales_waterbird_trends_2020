@@ -6,6 +6,7 @@ library(here)
 library(birdnames)
 library(flextable)
 library(officer)
+library(AICcmodavg)
 
 options(scipen = 999)
 
@@ -16,7 +17,7 @@ source(here("code/analysis_utilities.R"))
 trend_spp <- readRDS(here("data_files/trend_spp"))
 
 
-# getting and plotting predicted estimates ----
+# getting predicted estimates from top models ----
 
 
 
@@ -42,6 +43,12 @@ saveRDS(all_best_preds_response, here("data_files/all_best_preds_response"))
 all_best_preds_response <- readRDS(here("data_files/all_best_preds_response"))
 
 
+# get model averaged predictions ----
+# mod_avg_predictions()  in analysis_utilities.R
+mod_avg_preds <- map_df(trend_spp$alpha.code, mod_avg_predictions)
+
+saveRDS(mod_avg_preds, here("data_files/mod_avg_preds"))
+#
 # predict across fresh and moci range ----
 # need range of predictors, plus year of mean estimated abundance for each species with that predictor in the best model
 
@@ -111,8 +118,8 @@ saveRDS(moci_predictions, here("data_files/moci_predictions"))
 # freshwater inflow predictions
 
 fresh_spp <- map_df(trend_spp$alpha.code, get_best_model) %>% 
-  filter(grepl("fresh", Modnames)) %>% 
-  mutate(Modnames = ifelse(alpha.code == "COGO", "year_fresh", Modnames))
+  filter(grepl("fresh", Modnames)) #%>% 
+  #mutate(Modnames = ifelse(alpha.code == "COGO", "year_fresh", Modnames))
 
 
 check_fresh_informative <- function(zspp, zmod.name) {
@@ -128,7 +135,8 @@ parms_inf <- map2_df(zspp_mods, names(zspp_mods), parm_informative) %>%
   mutate(alpha.code = zspp)
 }
 
-fresh_inform <- map2_df(fresh_spp$alpha.code, fresh_spp$Modnames, check_fresh_informative)
+fresh_inform <- map2_df(fresh_spp$alpha.code, fresh_spp$Modnames, check_fresh_informative) %>% 
+  filter(!alpha.code %in% c("COGO", "Diving benthivore"))
 
 fresh_years <- readRDS(here("data_files/all_best_preds_response")) %>% 
   right_join(fresh_inform) %>% 
@@ -140,8 +148,8 @@ fresh_years <- readRDS(here("data_files/all_best_preds_response")) %>%
   mutate(year.diff = abs(2007 - study.year)) %>% 
   filter(year.diff == min(year.diff)) %>% 
   ungroup() %>% 
-  dplyr::select(alpha.code, study.year) %>% 
-  bind_rows(data.frame(alpha.code = "COGO", study.year = 2005))
+  dplyr::select(alpha.code, study.year) #%>% 
+  #bind_rows(data.frame(alpha.code = "COGO", study.year = 2005))
 
 
 get_fresh_predictions <- function(zspp) {
@@ -195,3 +203,4 @@ guild_pred <- map_df(c("year2.guild_fresh_moci", "year2_guild_fresh_moci", "year
 
 saveRDS(guild_pred, here("data_files/guild_preds_response"))
 
+readRDS(here("data_files/guild_preds_response")) %>% view()

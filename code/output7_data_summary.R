@@ -22,7 +22,37 @@ spp_day_total %>%
   ungroup() %>% 
   summarise(total.studies = sum(num.studies),
             mean.studies = mean(num.studies),
-            sd.studies = sd(num.studies))
+            sd.studies = sd(num.studies)) %>% 
+  ungroup() %>% 
+  mutate(across(c(mean.studies, sd.studies), ~round(., 2)))
+
+
+spp_day_total %>% 
+  distinct(study.year, date) %>% 
+  mutate(survey.per = case_when(month(date) == 12 ~ "Dec",
+                                month(date) == 1 & day(date) < 16 ~ "Early Jan",
+                                month(date) == 1 & day(date) >= 16 ~ "Late Jan",
+                                month(date) == 2 ~ "Feb",
+                                TRUE ~ NA),
+         survey.per = factor(survey.per, levels = c("Dec", "Early Jan", "Late Jan", "Feb"))) %>% 
+  group_by(study.year, survey.per) %>% 
+  summarise(num.surveys = n()) %>%
+  ungroup() %>% 
+  group_by(study.year) %>% 
+  mutate(num.surveys.year = sum(num.surveys)) %>% 
+  ggplot() +
+  geom_tile(aes(y = study.year, x = survey.per, fill = as.factor(num.surveys)), color = "black", alpha = 0.3) +
+  scale_y_continuous(breaks = seq(1992, 2022), labels = seq(1992, 2022)) +
+  theme_bw() +
+  geom_label(aes(y = study.year, x = 5, label = num.surveys.year), size = 3 , label.size = NA) +
+  labs(y = "Year",
+       x = "Survey period",
+       fill = "Number of\nsurveys per\nperiod",
+       title = "Number of waterbird surveys in each of 4 \'survey periods\'\nvalues along right are total per year") +
+  scale_x_discrete(expand = expansion(add = 1.2))
+
+ggsave(here("figures_output/number of surveys per year.png"))
+
 
 # mean and sd birds per survey ----
 spp_day_total %>% 
@@ -32,6 +62,30 @@ spp_day_total %>%
   summarise(mean.birds = mean(tot.birds.day),
             sd.birds = sd(tot.birds.day)) %>% 
   mutate(across(c("mean.birds", "sd.birds"), ~round(., 1)))
+
+
+spp_day_total %>% 
+  mutate(survey.per = case_when(month(date) == 12 ~ "Dec",
+                                month(date) == 1 & day(date) < 16 ~ "Early Jan",
+                                month(date) == 1 & day(date) >= 16 ~ "Late Jan",
+                                month(date) == 2 ~ "Feb",
+                                TRUE ~ NA),
+         survey.per = factor(survey.per, levels = c("Dec", "Early Jan", "Late Jan", "Feb"))) %>% 
+  group_by(study.year, alpha.code, survey.per) %>%
+  mutate(survey.per.num = row_number()) %>% 
+  ungroup() %>% 
+  group_by(study.year, alpha.code) %>% 
+  mutate(mean.bay.total = mean(bay.total),
+         p75.bay.total = quantile(bay.total, p = 0.75),
+         resid.bay.total = bay.total - mean.bay.total,
+         p75.resid = bay.total - p75.bay.total,
+         sd.bay.total = sd(bay.total)) %>% 
+  filter(alpha.code %in% c("SUSC", "SCAUP", "BUFF", "DCCO", "BRAC")) %>% 
+  ggplot() +
+  geom_point(aes(x = study.year, y = sd.bay.total)) +
+    geom_hline(yintercept = 0) +
+  facet_wrap(~alpha.code)
+  
 
 # mean and sd birds allocated from groups to species each survey ----
 

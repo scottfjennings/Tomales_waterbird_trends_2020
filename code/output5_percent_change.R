@@ -28,7 +28,7 @@ all_best_preds_response <- readRDS(here("data_files/all_best_preds_response")) %
 #              mutate(Modnames = "year2_guild_fresh_moci"))
 
 
-# calculate percent change ----
+# calculate percent change from top model ----
 
   
  # vertex of quadratic curves
@@ -96,10 +96,29 @@ filter(percent_changes, phase == "overall") %>%
   view()
 
   
+# calculate percent change from model averaged estimates ----  
+  # not separating for quadratic curves
   
+
+mod_avg_preds <- readRDS(here("data_files/mod_avg_preds"))
   
-  
-  
-  
-  
+
+mod_avg_per_change <- mod_avg_preds %>% 
+  mutate(common.name = translate_bird_names(alpha.code, "alpha.code", "common.name")) %>% 
+  group_by(common.name) %>% 
+  filter(study.year == min(study.year) | study.year == max(study.year)) %>% 
+  arrange(common.name, study.year) %>% 
+  group_by(common.name) %>% 
+  mutate(percent.change = 100 * ((mod.avg.pred/lag(mod.avg.pred))-1),
+         which.year = ifelse(study.year == min(study.year), "start", "end")) %>% 
+  ungroup() %>% 
+  mutate(across(c(mod.avg.pred, lower.CL, upper.CL), ~floor(.)),
+         pred.out = paste(mod.avg.pred, " (", lower.CL, ", ", upper.CL, ")", sep = ""),
+         percent.change = round(percent.change, 1))
+
+
+
+
+saveRDS(mod_avg_per_change, here("data_files/mod_avg_per_change"))
+
   

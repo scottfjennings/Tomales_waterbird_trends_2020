@@ -29,7 +29,8 @@ all_aic <- map_df(trend_spp$alpha.code, get_aic)
 
 inform_mod_names <- all_comp_coefs %>% 
   filter(variable != "(Intercept)") %>% 
-  mutate(informative = ifelse((lci < 0 & uci < 0) | (lci > 0 & uci > 0), TRUE, FALSE),
+  mutate(#informative = ifelse((lci < 0 & uci < 0) | (lci > 0 & uci > 0), TRUE, FALSE),
+         informative = ifelse(sign(lci) == sign(uci), TRUE, FALSE),
          variable = ifelse(informative == FALSE & !variable %in% c("poly(study.year, 2)1"), sprintf(paste(variable, "^\u2020^", sep = "")), variable),
          variable = fix_varb_names(variable)) %>%
   group_by(alpha.code, Modnames) %>% 
@@ -37,8 +38,9 @@ inform_mod_names <- all_comp_coefs %>%
 
 all_comp_coefs_wide <- all_comp_coefs %>% 
   mutate(across(c(coefficient, lci, uci, Delta_AICc), ~round(., 3)),
+         informative = ifelse(sign(lci) == sign(uci), "", "*"),
          variable = fix_varb_names(variable),
-         coef.ci = paste(coefficient, " (", lci, ", ", uci, ")", sep = "")) %>% 
+         coef.ci = paste(coefficient, " (", lci, ", ", uci, ")", informative, sep = "")) %>% 
   pivot_wider(id_cols = c(alpha.code, Modnames), names_from = variable, values_from = coef.ci)
 
 coefs_wide <- full_join(all_comp_coefs_wide, inform_mod_names) %>%  

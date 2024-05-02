@@ -66,7 +66,7 @@ best_mod_name <- readRDS(here("fitted_models/final_models"))[[zspp]][["aic_tab"]
 get_competitive_models <- function(zspp) {
 comp_mods <- readRDS(here("fitted_models/final_models"))[[zspp]][["aic_tab"]] %>% 
   filter(Delta_AICc <= 2) %>% 
-  select(Modnames) %>% 
+  dplyr::select(Modnames, Delta_AICc) %>% 
   mutate(alpha.code = zspp)
 }
 
@@ -323,6 +323,36 @@ zpred_new <- predict(zspp_mod, znewdat, type = "link", se = TRUE) %>%
 }
 
 
+#' mod_predictions_link
+#' 
+#' calculate model estimates (predictions) for zspp species and zmod model on the scale of the link function
+#'
+#' @param zspp 
+#' @param zmod 
+#'
+#' @return data frame
+#' @export
+#'
+#' @examples
+mod_avg_predictions <- function(zspp) {
+  
+  znewdat <- data.frame(study.year = seq(1992, 2022),
+                        moci = 0,
+                        fresh = 0)%>% 
+    mutate(giac = ifelse(study.year < 2009, 0, 1))
+  
+  zspp_mods <- readRDS(here("fitted_models/final_models"))[[zspp]]
+  zspp_mods[["aic_tab"]] <- NULL
+  zspp_mods[["aic_tab_no_giac"]] <- NULL
+  
+  zspp_pred <- modavgPred(zspp_mods, modnames = names(zspp_mods), newdata = znewdat)$matrix.output %>% 
+    data.frame() %>% 
+    bind_cols(znewdat)  %>%
+    mutate(alpha.code = zspp)
+  
+}
+
+
 #' spp_mod_plotter
 #' 
 #' Plot estimates and raw data for each zspp and each model in zmod. This function calculates estimates on the fly to allow plotting estimates from multiple models without having to separately go generate predictions for more than just the best model.
@@ -432,9 +462,10 @@ zplot <- zdat %>%
 zplot
   
 if(save.plot == TRUE) {
-    ggsave(here(paste("figures_output/", zspp, ".png", sep = "")), zplot, height = 6, width = 6)
+    ggsave(here(paste("figures_output/best_mod/", zspp, ".png", sep = "")), zplot, height = 6, width = 6)
 } else {
   return(zplot)
 }
 }
+
 

@@ -262,7 +262,7 @@ wcgr <- spp_mod_plotter("WCGR", save.plot = FALSE) +
 
 all_plots <- list("ALL" = all, "BRAN" = bran, "CANG" = cang, "GADW" = gadw, "AMWI" = amwi, "MALL" = mall, "NOPI" = nopi, "GWTE" = gwte, "SCAUP" = scaup, "SUSC" = susc, "BLSC" = blsc, "BUFF" = buff, "COGO" = cogo, "COME" = come, "RBME" = rbme, "RUDU" = rudu, "PBGR" = pbgr, "HOGR" = hogr, "RNGR" = rngr, "EAGR" = eagr, "WCGR" = wcgr, "AMCO" = amco, "FOTE" = fote, "RTLO" = rtlo, "PALO" = palo, "COLO" = colo, "BRAC" = brac, "PECO" = peco, "DCCO" = dcco, "BRPE" = brpe)
 
-saveRDS(all_plots, here("figures_output/all_plots"))  
+saveRDS(all_plots, here("figures_output/best_mods/all_plots"))  
   
 # plot predictor variables ----
 
@@ -270,7 +270,7 @@ saveRDS(all_plots, here("figures_output/all_plots"))
 predictor_plot <- readRDS(here("data_files/predictors")) %>%
   dplyr::select(-giac) %>% 
   pivot_longer(cols = c(annual.freshwater, mean.moci), names_to = "predictor", values_to = "predictor.value") %>% 
-  mutate(predictor = ifelse(predictor == "mean.moci", "MOCI", "Freshwater inflow")) %>% 
+  mutate(predictor = ifelse(predictor == "mean.moci", "MOCI", "Freshwater inflow (mean daily CFS)")) %>% 
   ggplot() +
     geom_line(aes(x = study.year, y = predictor.value)) +
   stat_smooth(aes(x = study.year, y = predictor.value), method = "lm", se = FALSE) +
@@ -376,7 +376,7 @@ moci_fresh_predictions <- bind_rows(readRDS(here("data_files/moci_predictions"))
   mutate(predictor.native = (predictor.val*sd.val) + mean.val,
          abund.group = case_when(alpha.code %in% c("ALL", "SCAUP", "BUFF") ~ "high",
                                  alpha.code %in% c("MALL", "AMWI", "EAGR", "RUDU") ~ "medium",
-                                 alpha.code %in% c("COME", "PBGR", "GADW", "COGO") ~ "low"),
+                                 alpha.code %in% c("COME", "PBGR", "GADW") ~ "low"),
          common.name = translate_bird_names(alpha.code, "alpha.code", "common.name"),
          common.name = ifelse(common.name == "all", "All species combined", common.name),
          predictor = ifelse(predictor == "annual.freshwater", "Freshwater inflow (mean daily CFS)", "MOCI"))

@@ -78,6 +78,15 @@ saveRDS(spp_day_total_ungrouped, here("data_files/spp_day_total_ungrouped"))
 
 
 
+guilds <- read.csv(here("data_files/Foraging guild table.csv")) %>% 
+  mutate(alpha.code = translate_bird_names(common.name, "common.name", "alpha.code")) %>% 
+  dplyr::select(alpha.code, guild) %>% 
+  right_join(spp_day_total) %>% 
+  filter(!is.na(guild)) %>% 
+  dplyr::select(-alpha.code) %>% 
+  rename("alpha.code" = guild) %>%
+  group_by(study.year, date, alpha.code) %>% 
+  summarise(bay.total = sum(bay.total))
 
 # add up all species each year (includes non trend species), combine with by-species data, and calculate the 75th percentile of the individual day totals for each species/species group each year
 spp_annual <- spp_day_total %>%
@@ -85,6 +94,7 @@ spp_annual <- spp_day_total %>%
   summarise(bay.total = sum(bay.total)) %>% 
   mutate(alpha.code = "ALL") %>% 
   bind_rows(spp_day_total %>% dplyr::select(study.year, date, alpha.code, bay.total)) %>% 
+  bind_rows(guilds) %>% 
   group_by(study.year, alpha.code) %>% 
   summarise(p75.abund = floor(quantile(bay.total, 0.75)))
 
@@ -137,5 +147,8 @@ readRDS(here("data_files/predictors")) %>%
 
 
 saveRDS(spp_annual_full_preds, here("data_files/spp_annual_full_preds"))
+
+
+
 
 

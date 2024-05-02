@@ -236,7 +236,7 @@ spp_aic_wrapper("WCGR")
 <br>  
 
 
-```{r}
+```{r eval=FALSE}
 
 readRDS(here("fitted_models/final_models"))[["guild"]][["aic_tab"]] %>%
     mutate(mod.name.out = Modnames) %>% 
